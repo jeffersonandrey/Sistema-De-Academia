@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="PT-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login e cadastro</title>
+    <link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+    <main>
+        <header class="header">
+            <h1><a href="index.html">Academia</a></h1>
+        </header>
+        <form id="form">
+            <div class="container">
+                <h2>Login</h2>
+                <label id="email-label">Email: </label>
+                <input id="email" type="email" placeholder="Insira seu email cadastrado" style="text-align: left" required>
+                <hr>
+                <label id="password-label">Senha: </label>
+                <input id="senha" type="password" placeholder="Insira a sua senha" style="text-align: left" required>
+                <hr>
+                <button id="submit" type="submit">Logar</button>    
+            </div>
+            <div id="message">
+            </div> 
+        </form>
+        <footer class="footer">
+            <p>Não possui uma conta? Faça seu cadastro <a href="cadastro.html">aqui</a></p>
+        </footer>
+    </main>
+    <script>
+        document.getElementById("form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+        
+            const email = document.getElementById("email").value;
+            const senha = document.getElementById("senha").value;
+
+            console.log("Dados de login:", { email, senha }); 
+
+            try {
+                const response = await fetch('http://localhost:3000/autenticar-aluno', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const result = await response.json();
+
+                const messageDiv = document.getElementById("message");
+                messageDiv.innerText = result.message; 
+
+                if (!response.ok) {
+                    console.error("Erro ao fazer login:", result.message);
+                    return; 
+                }
+
+                if (result.success) {
+                    window.location.href = "/area_aluno.html";
+                }
+            } catch (error) {
+                console.error("Erro ao fazer login:", error);
+                document.getElementById("message").innerText = "Erro ao tentar fazer login."; 
+            }
+        });
+    </script>
+</body>
+</html>

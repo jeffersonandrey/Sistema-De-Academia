@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="PT-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro do aluno</title>
+    <link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+    <main>
+        <div class="header">
+            <h1><a href="index.html">Academia</a></h1>
+        </div>
+        <form id="form">
+            <div class="container">
+                <h2>Cadastro de aluno</h2>
+                <label id="name-label" for="name">Nome: </label>
+                <input id="name" type="text" placeholder="Insira seu nome" style="text-align: left" required>
+                <hr>
+                <label id="email-label" for="email">Email: </label>
+                <input id="email" type="email" placeholder="Insira seu email" style="text-align: left" required>
+                <hr>
+                <label id="senha-label" for="senha">Senha: </label>
+                <input id="senha" type="password" placeholder="Insira a sua senha" style="text-align: left;" required>
+                <hr>
+                <label id="tel-label" for="telephone">Telefone: </label>
+                <input id="tel" type="tel" placeholder="+55 (XX) 9XXXX-XXXX" pattern="\+55 \(\d{2}\) 9\d{4}-\d{4}" required>
+                <hr>
+                <label id="cpf-label" for="cpf">CPF: </label>
+                <input id="cpf" type="text" placeholder="XXX.XXX.XXX-XX" pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" required>
+                <hr>
+                <label id="dropdown-label" for="dropdown">Escolha um de nossos planos: </label>
+                <select id="dropdown" name="plano" required>
+                    <option value="" disabled selected>Selecione uma de nossas opções</option>
+                    <option value="Anual">Anual</option>
+                    <option value="Semestral">Semestral</option>
+                    <option value="Mensal">Mensal</option>
+                    <option value="Semanal">Semanal</option>
+                    <option value="Dia único">Dia único</option>
+                </select>
+                <hr>
+                <button id="submit" type="submit">Enviar</button>
+            </div>
+            <div id ="message">
+            </div>
+        </form> 
+        <footer class="footer">
+            <p>Já possui uma conta? Faça seu login <a href="login.html">aqui</a></p>
+        </footer>
+    </main> 
+    <script>
+        // Função para mostrar mensagens
+        function showMessage(message) {
+            document.getElementById("message").innerText = message;
+        }
+
+        // Função para limpar mensagens
+        function clearMessage() {
+            document.getElementById("message").innerText = '';
+        }
+
+        document.getElementById('form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            clearMessage(); // Limpa a mensagem anterior
+
+            const aluno = {
+                nome: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                senha: document.getElementById('senha').value,
+                telefone: document.getElementById('tel').value, 
+                cpf: document.getElementById('cpf').value, 
+                plano: document.getElementById('dropdown').value
+            };
+            
+            try {
+                const response = await fetch('/cadastrar-aluno', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(aluno)
+                });
+                
+                const result = await response.json();
+                
+                // Exibir a mensagem de cadastro
+                showMessage(result.message);
+                
+                // Limpar os campos após o cadastro bem-sucedido
+                if (result.success) {
+                    document.getElementById('form').reset(); // Reseta o formulário
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar aluno:', error);
+                showMessage('Erro ao cadastrar aluno. Tente novamente.'); // Mensagem de erro
+            }
+        });
+
+        // Função para formatar o telefone
+        function formatarTelefone(value) {
+            value = value.replace(/\D/g, ''); // Remove não numéricos
+            if (value.length > 10) {
+                return `+55 (${value.substring(2, 4)}) ${value.substring(4, 9)}-${value.substring(9)}`;
+            } else if (value.length > 1) {
+                return `+55 (${value.substring(2)}) ${value.substring(4)}`;
+            } else if (value.length > 0) {
+                return `+55 (${value}`;
+            }
+            return ''; // Retorna vazio se não houver valor
+        }
+
+        // Função para formatar o CPF
+        function formatarCPF(value) {
+            value = value.replace(/\D/g, ''); // Remove não numéricos
+            if (value.length > 9) {
+                return `${value.substring(0, 3)}.${value.substring(3, 6)}.${value.substring(6, 9)}-${value.substring(9, 11)}`;
+            } else if (value.length > 5) {
+                return `${value.substring(0, 3)}.${value.substring(3)}`;
+            } else if (value.length > 0) {
+                return `${value}`;
+            }
+            return ''; // Retorna vazio se não houver valor
+        }
+
+        document.getElementById('tel').addEventListener('blur', function (e) {
+            e.target.value = formatarTelefone(e.target.value);
+        });
+
+        document.getElementById('cpf').addEventListener('blur', function (e) {
+            e.target.value = formatarCPF(e.target.value);
+        });
+
+        // Adicionando evento de input para limpar mensagens ao editar campos
+        document.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', clearMessage);
+        });
+    </script>   
+</body>
+</html>
