@@ -11,12 +11,26 @@
         <div class="header">
             <h1><a href="index.html">Academia</a></h1>
         </div>
-        <div class="container" id="container">
-            <h2>Sistema gerencial da academia</h2>
-            <label id="ra"></label>
-            <input id="nmr_ra" type="search" placeholder="Insira o RA do Aluno: ">
-            <button id="submit">Procurar</button>
-        </div>
+        
+        <!-- Formulário para gerar relatório -->
+        <form id="relatorioForm">
+            <div class="container" id="container">
+                <h2>Sistema gerencial da academia</h2>
+                <label for="cpfAluno">Insira o CPF do Aluno: </label>
+                <input id="cpfRelatorio" type="text" placeholder="Insira o CPF do Aluno" required>
+                <br><br>
+                
+                <label for="startDate">Data Inicial:</label>
+                <input type="date" id="startDate" name="startDate" required><br><br>
+            
+                <label for="endDate">Data Final:</label>
+                <input type="date" id="endDate" name="endDate" required><br><br>
+            
+                <button type="submit">Gerar Relatório</button>
+            </div>
+        </form>
+
+        <!-- Formulário para deletar aluno -->
         <form id="deleteForm">
             <div class="container" id="container">
                 <label for="cpfDelete">CPF do aluno a ser deletado:</label>
@@ -25,7 +39,9 @@
                 <button type="button" id="deleteAll">Deletar Todos os Alunos</button>
             </div>
         </form>
+
+        <div id="resultado"></div> <!-- Onde os resultados do relatório serão exibidos -->
     </main>   
-    <script src = gerenciador.js></script>
+    <script src="gerenciador.js"></script>
 </body>
 </html>

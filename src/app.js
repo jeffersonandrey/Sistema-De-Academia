@@ -316,6 +316,75 @@ app.get('/dados-aluno', (req, res) => {
     res.json({ success: true, aluno: req.session.aluno }); 
 });
 
+app.post(
+    "/gerar-relatorio",
+    [
+      body("startDate").isISO8601().withMessage("Data inicial inválida."),
+      body("endDate").isISO8601().withMessage("Data final inválida."),
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const { startDate, endDate, cpfAluno } = req.body;  // Adicionamos 'cpfAluno' ao corpo da requisição.
+  
+      if (!cpfAluno) {
+        return res.status(400).json({ message: "CPF do aluno é obrigatório." });
+      }
+  
+      let connection;
+      try {
+        connection = await oracledb.getConnection({
+          user: "system",
+          password: "123123",
+          connectString: "localhost/XEPDB1",
+        });
+  
+        // Verificando se o aluno existe na tabela de alunos
+        const alunoQuery = `SELECT COUNT(*) AS aluno_count FROM alunos WHERE CPF = :cpfAluno`;
+        const alunoResult = await connection.execute(alunoQuery, { cpfAluno });
+  
+        if (alunoResult.rows[0].ALUNO_COUNT === 0) {
+          return res.status(404).json({ message: "Aluno não encontrado." });
+        }
+  
+        // Caso o aluno exista, executa a consulta para gerar o relatório
+        const query = `
+          SELECT 
+            f.CPF_aluno, 
+            a.nome, 
+            COUNT(f.ID_frequencia) AS total_presencas,
+            SUM(EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada))) AS total_horas
+          FROM frequencia f
+          JOIN alunos a ON f.CPF_aluno = a.CPF
+          WHERE f.data_entrada BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
+          AND f.CPF_aluno = :cpfAluno
+          GROUP BY f.CPF_aluno, a.nome
+        `;
+  
+        const result = await connection.execute(query, { startDate, endDate, cpfAluno });
+  
+        res.json({
+          message: "Relatório gerado com sucesso!",
+          data: result.rows,
+        });
+      } catch (err) {
+        console.error("Erro ao acessar o banco:", err);
+        res.status(500).json({ message: "Erro interno no servidor." });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error("Erro ao fechar a conexão:", err);
+          }
+        }
+      }
+    }
+  );  
+
 // Inicia o servidor na porta especificada
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`); 
