@@ -33,3 +33,40 @@ CREATE TABLE relatorio (
     classificacao VARCHAR2(50),
     CONSTRAINT FK_Aluno_Relatorio FOREIGN KEY (CPF_aluno) REFERENCES alunos(cpf)
 );
+
+INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada, hora_saida)
+VALUES (
+    '239.514.258-14',                          -- CPF do aluno
+    TO_DATE('2024-11-20', 'YYYY-MM-DD'),       -- data de entrada
+    TO_TIMESTAMP('2024-11-20 09:00:00', 'YYYY-MM-DD HH24:MI:SS'),  -- hora de entrada
+    TO_TIMESTAMP('2024-11-20 16:30:00', 'YYYY-MM-DD HH24:MI:SS')   -- hora de saída
+);
+
+INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada, hora_saida)
+VALUES (
+    '239.514.258-14',
+    TO_DATE('2024-11-19', 'YYYY-MM-DD'),
+    TO_TIMESTAMP('2024-11-19 07:45:00', 'YYYY-MM-DD HH24:MI:SS'),
+    TO_TIMESTAMP('2024-11-19 18:15:00', 'YYYY-MM-DD HH24:MI:SS')
+);
+
+SELECT
+  a.nome AS nome_aluno,
+  COUNT(f.ID_frequencia) AS quantidade_visitas,
+  SUM(CASE
+     WHEN f.hora_saida IS NOT NULL THEN
+        (CAST(f.hora_saida AS DATE) - CAST(f.hora_entrada AS DATE)) * 24  -- Multiplicando por 24 para converter para horas
+     ELSE
+         0
+  END) AS tempo_total
+FROM
+  frequencia f
+JOIN
+  alunos a ON f.CPF_aluno = a.cpf
+WHERE
+  f.CPF_aluno = :cpfAluno
+  AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+  AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+GROUP BY
+  a.nome;
+

@@ -4,20 +4,30 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
     // Obter os valores dos campos de data
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
-    const cpfAluno = document.getElementById("cpfRelatorio").value; 
+    const cpfAluno = document.getElementById("cpfRelatorio").value; // Obter o CPF do aluno
 
-    // Verificar se a data inicial não é posterior à data final
-    if (new Date(startDate) > new Date(endDate)) {
-        alert("A data inicial não pode ser maior que a data final.");
+    // Verificar se ambos os campos de data e o CPF foram preenchidos
+    if (!startDate || !endDate || !cpfAluno) {
+        alert("Por favor, preencha as datas de início, fim e o CPF do aluno.");
         return;
     }
+
+    // Função para converter a data de DD/MM/YYYY para YYYY-MM-DD
+    function formatDate(date) {
+        const parts = date.split('/'); // Separar a data em dia, mês e ano
+        return `${parts[2]}-${parts[1]}-${parts[0]}`; // Retornar no formato YYYY-MM-DD
+    }
+
+    // Converter as datas para o formato correto
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
 
     try {
         // Enviar os dados de data e CPF para o servidor
         const response = await fetch("/gerar-relatorio", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startDate, endDate, cpfAluno }), // Enviar CPF do aluno junto com as datas
+            body: JSON.stringify({ startDate: formattedStartDate, endDate: formattedEndDate, cpfAluno }), // Enviar CPF do aluno junto com as datas
         });
 
         // Verificar se a resposta do servidor foi bem-sucedida
@@ -30,15 +40,17 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
         
         // Verificar se há dados para exibir
         const resultadoDiv = document.getElementById("resultado");
-        if (result.data && result.data.length > 0) {
-            let htmlContent = '<ul>';
-            result.data.forEach(item => {
-                htmlContent += `<li>Aluno: ${item.nome} | CPF: ${item.cpf}</li>`;
-            });
-            htmlContent += '</ul>';
-            resultadoDiv.innerHTML = htmlContent;
+        if (result.length > 0) {
+            // Formatando o relatório
+            const aluno = result[0]; // Como estamos agrupando pelo nome do aluno, deve retornar apenas um aluno
+            const tempoTotal = aluno.tempo_total / (60 * 60); // Convertendo de segundos para horas
+            resultadoDiv.innerHTML = `
+                <p><strong>Nome do Aluno:</strong> ${aluno.nome_aluno}</p>
+                <p><strong>Quantidade de Visitas:</strong> ${aluno.quantidade_visitas}</p>
+                <p><strong>Tempo Total:</strong> ${tempoTotal.toFixed(2)} horas</p>
+            `;
         } else {
-            alert("Nenhum dado encontrado para o intervalo de datas informado.");
+            resultadoDiv.innerText = "Nenhum dado encontrado para o intervalo de datas informado.";
         }
     } catch (error) {
         console.error("Erro ao gerar relatório:", error);

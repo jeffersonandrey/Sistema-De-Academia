@@ -352,23 +352,47 @@ app.post(
   
         // Caso o aluno exista, executa a consulta para gerar o relatório
         const query = `
-          SELECT 
-            f.CPF_aluno, 
-            a.nome, 
-            COUNT(f.ID_frequencia) AS total_presencas,
-            SUM(EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada))) AS total_horas
-          FROM frequencia f
-          JOIN alunos a ON f.CPF_aluno = a.CPF
-          WHERE f.data_entrada BETWEEN TO_DATE(:startDate, 'YYYY-MM-DD') AND TO_DATE(:endDate, 'YYYY-MM-DD')
-          AND f.CPF_aluno = :cpfAluno
-          GROUP BY f.CPF_aluno, a.nome
-        `;
+        SELECT
+        a.nome AS nome_aluno,
+        COUNT(f.ID_frequencia) AS quantidade_visitas,
+        SUM(CASE
+            WHEN f.hora_saida IS NOT NULL THEN
+                (CAST(f.hora_saida AS DATE) - CAST(f.hora_entrada AS DATE)) * 24  -- Multiplicando por 24 para converter para horas
+            ELSE
+                0
+        END) AS tempo_total
+        FROM
+        frequencia f
+        JOIN
+        alunos a ON f.CPF_aluno = a.cpf
+        WHERE
+        f.CPF_aluno = :cpfAluno
+        AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        GROUP BY
+        a.nome;`;
+
   
         const result = await connection.execute(query, { startDate, endDate, cpfAluno });
   
+        // Verificar se a consulta retornou resultados
+        if (result.rows.length === 0) {
+          return res.status(404).json({ message: "Nenhuma visita encontrada para o aluno no período especificado." });
+        }
+  
+        // Convertendo o tempo total para horas
+        const tempoTotalEmDias = result.rows[0].TEMPO_TOTAL; 
+        const tempoTotalEmHoras = tempoTotalEmDias * 24; // Converte de dias para horas
+        const tempoTotalEmMinutos = tempoTotalEmHoras * 60; // Converte de horas para minutos
+  
         res.json({
           message: "Relatório gerado com sucesso!",
-          data: result.rows,
+          data: {
+            nome_aluno: result.rows[0].NOME_ALUNO,
+            quantidade_visitas: result.rows[0].QUANTIDADE_VISITAS,
+            tempo_total_horas: tempoTotalEmHoras.toFixed(2), // Mostrando 2 casas decimais
+            tempo_total_minutos: tempoTotalEmMinutos.toFixed(0), // Mostrando em minutos sem casas decimais
+          },
         });
       } catch (err) {
         console.error("Erro ao acessar o banco:", err);
@@ -383,7 +407,8 @@ app.post(
         }
       }
     }
-  );  
+  );
+  
 
 // Inicia o servidor na porta especificada
 app.listen(port, () => {
