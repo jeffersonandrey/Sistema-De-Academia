@@ -4,13 +4,7 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
     // Obter os valores dos campos de data
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
-    const cpfAluno = document.getElementById("cpfRelatorio").value; // Obter o CPF do aluno
-
-    // Verificar se ambos os campos de data e o CPF foram preenchidos
-    if (!startDate || !endDate || !cpfAluno) {
-        alert("Por favor, preencha as datas de início, fim e o CPF do aluno.");
-        return;
-    }
+    const cpfAluno = document.getElementById("cpfRelatorio").value; 
 
     // Verificar se a data inicial não é posterior à data final
     if (new Date(startDate) > new Date(endDate)) {
@@ -44,7 +38,7 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
             htmlContent += '</ul>';
             resultadoDiv.innerHTML = htmlContent;
         } else {
-            resultadoDiv.innerText = "Nenhum dado encontrado para o intervalo de datas informado.";
+            alert("Nenhum dado encontrado para o intervalo de datas informado.");
         }
     } catch (error) {
         console.error("Erro ao gerar relatório:", error);
