@@ -1,5 +1,10 @@
 :root {
     --main-font: 'Roboto', Arial, sans-serif;
+    --primary-color: #ff4c4c; /* Vermelho vibrante */
+    --secondary-color: #1a1a1a; /* Preto escuro */
+    --background-color: #0d0d0d; /* Preto absoluto */
+    --text-color-light: #ffffff; /* Branco */
+    --text-color-dark: #cccccc; /* Cinza claro */
 }
 
 /* Estilo geral do body */
@@ -12,51 +17,57 @@
     justify-content: center;
 }
 
-.header a {
-    text-decoration: none;
-}
-
 body {
-    background: linear-gradient(to top, rgb(230,230,230), rgb(250,250,250));
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-size: cover;
+    background: var(--background-color);
     font-family: var(--main-font);
     display: flex;
     flex-direction: column;
     min-height: 100vh;
     margin: 0;
     overflow-x: hidden;
+    color: var(--text-color-light);
 }
 
 /* Estilo para o cabeçalho */
 .header {
     text-align: center;
-    background-color: rgb(200, 200, 200);
-    color: white;
+    background-color: var(--secondary-color);
+    color: var(--text-color-light);
     top: 0;
     left: 0;
     width: 100%;
     z-index: 1000;
     display: flex;
-    justify-content: left;
+    justify-content: space-between;
     align-items: center;
     height: 75px;
+    padding: 0 20px;
     margin-bottom: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.header a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.header a:hover {
+    color: #ff9999;
 }
 
 /* Estilo para o container */
 #container {
-    background-color: rgb(218, 218, 218);
+    background-color: var(--secondary-color);
     text-align: center;
     margin: 20px auto;
     padding: 20px;
     max-width: 40%;
     border-radius: 12px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(255, 76, 76, 0.5);
     flex-grow: 1;
     margin-bottom: 2.5%;
+    color: var(--text-color-light);
 }
 
 /* Estilo para labels, inputs e selects */
@@ -65,6 +76,7 @@ label, input, select {
     font-size: 15px;
     display: block;
     width: 100%;
+    color: var(--text-color-dark);
 }
 
 /* Estilo para botões */
@@ -76,33 +88,26 @@ button {
     display: block;
     border-radius: 9px;
     transition: all 0.1s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: var(--primary-color);
+    color: var(--text-color-light);
+    border: none;
+    box-shadow: 0 4px 6px rgba(255, 76, 76, 0.4);
 }
 
 button:hover {
-    background-color: rgb(245, 245, 245);
-    transform: scale(1.025);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-button.primary {
-    background-color: #007bff;
-    color: white;
-    border: none;
-}
-
-button.primary:hover {
-    background-color: #0056b3;
+    background-color: #ff6666;
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(255, 76, 76, 0.6);
 }
 
 /* Estilo para o formulário */
 #form {
-    padding: 4px;
+    padding: 10px;
     font-weight: bold;
     font-size: 16px;
     border-radius: 9px;
     text-align: center;
-    background-color: rgb(218, 218, 218);
+    background-color: var(--secondary-color);
     margin: 20px auto;
     align-items: center;
     align-self: center;
@@ -110,72 +115,67 @@ button.primary:hover {
     display: flex;
     width: 100%;
     max-width: 25%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(255, 76, 76, 0.5);
+    color: var(--text-color-light);
 }
 
 /* Estilo para a tabela */
 table {
     width: 50%;
     border-collapse: collapse;
-    margin: 0 auto;
+    margin: 20px auto;
     font-family: Arial, Helvetica, sans-serif;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    background-color: var(--secondary-color);
+    color: var(--text-color-light);
+    box-shadow: 0 4px 8px rgba(255, 76, 76, 0.5);
 }
 
 table, th, td {
-    border: 1px solid black;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-    height: 35px;
+    border: 1px solid var(--primary-color);
 }
 
 th {
-    background-color: rgb(180, 180, 180);
+    background-color: var(--primary-color);
+    color: var(--text-color-light);
 }
 
 td {
-    background-color: rgb(255, 255, 255);
+    background-color: var(--secondary-color);
 }
 
 /* Estilo para linha horizontal */
 hr {
-    border-color: transparent;
+    border-color: var(--primary-color);
     width: 20%;
 }
 
-/* Estilo para input e button */
-input, button, select {
+/* Estilo para input e select */
+input, select {
     border-radius: 9px;
-    border: transparent;
+    border: none;
+    background-color: var(--secondary-color);
+    color: var(--text-color-light);
+    padding: 10px;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-input {
-    padding-left: 2%;
-    width: 100%;
-    box-sizing: border-box;
+input::placeholder {
+    color: var(--text-color-dark);
 }
 
 /* Estilo para o título */
-h1 {
-    padding-left: 1%;
-}
-
-/* Remoção dos botões de incremento de números */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none; 
-    margin: 0;
+h1, h2, h3 {
+    color: var(--primary-color);
+    text-align: center;
 }
 
 /* Estilo da mensagem */
 #message {
     margin-bottom: 5px;
     padding: 5px;
+    background-color: var(--primary-color);
+    color: var(--text-color-light);
+    border-radius: 5px;
 }
 
 /* Estilo do footer */
@@ -184,35 +184,31 @@ input[type="number"]::-webkit-outer-spin-button {
     flex-direction: column;
     align-items: center;
     font-size: small;
-    padding: 10px 0px;
-    color: #555;
+    padding: 10px 0;
+    background-color: var(--secondary-color);
+    color: var(--text-color-light);
     width: 100%;
-    height: 0cqh; 
-    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.05);
-    margin-top: 50px; 
-    position: relative; 
+    margin-top: auto;
+    box-shadow: 0 -4px 8px rgba(255, 76, 76, 0.3);
 }
 
-/* Estilo dos links do footer */
 .footer a {
-    color: #555;
+    color: var(--primary-color);
     text-decoration: none;
     transition: color 0.3s;
 }
 
 .footer a:hover {
-    color: rgb(20, 100, 180);
-    text-decoration: underline;
+    color: #ff6666;
 }
 
 /* Estilo dos links gerais */
 a {
-    color: black;
+    color: var(--primary-color);
     transition: color 0.4s;
 }
 
 a:hover {
-    color: rgb(20, 100, 180);
+    color: #ff9999;
     text-decoration: underline;
 }
-
