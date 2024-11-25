@@ -13,11 +13,11 @@ document.getElementById('form').addEventListener('submit', async (event) => {
     clearMessage(); // Limpa a mensagem anterior
 
     const aluno = {
+        cpf: document.getElementById('cpf').value,
         nome: document.getElementById('name').value,
         email: document.getElementById('email').value,
         senha: document.getElementById('senha').value,
-        telefone: document.getElementById('tel').value, 
-        cpf: document.getElementById('cpf').value, 
+        telefone: document.getElementById('tel').value,  
         plano: document.getElementById('dropdown').value
     };
     
