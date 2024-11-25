@@ -316,6 +316,100 @@ app.get('/dados-aluno', (req, res) => {
     res.json({ success: true, aluno: req.session.aluno }); 
 });
 
+app.post(
+    "/gerar-relatorio",
+    [
+      body("startDate").isISO8601().withMessage("Data inicial inválida."),
+      body("endDate").isISO8601().withMessage("Data final inválida."),
+    ],
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+  
+      const { startDate, endDate, cpfAluno } = req.body;  // Adicionamos 'cpfAluno' ao corpo da requisição.
+  
+      if (!cpfAluno) {
+        return res.status(400).json({ message: "CPF do aluno é obrigatório." });
+      }
+  
+      let connection;
+      try {
+        connection = await oracledb.getConnection({
+          user: "system",
+          password: "123123",
+          connectString: "localhost/XEPDB1",
+        });
+  
+        // Verificando se o aluno existe na tabela de alunos
+        const alunoQuery = `SELECT COUNT(*) AS aluno_count FROM alunos WHERE CPF = :cpfAluno`;
+        const alunoResult = await connection.execute(alunoQuery, { cpfAluno });
+  
+        if (alunoResult.rows[0].ALUNO_COUNT === 0) {
+          return res.status(404).json({ message: "Aluno não encontrado." });
+        }
+  
+        // Caso o aluno exista, executa a consulta para gerar o relatório
+        const query = `
+        SELECT
+        a.nome AS nome_aluno,
+        COUNT(f.ID_frequencia) AS quantidade_visitas,
+        SUM(CASE
+            WHEN f.hora_saida IS NOT NULL THEN
+                (CAST(f.hora_saida AS DATE) - CAST(f.hora_entrada AS DATE)) * 24  -- Multiplicando por 24 para converter para horas
+            ELSE
+                0
+        END) AS tempo_total
+        FROM
+        frequencia f
+        JOIN
+        alunos a ON f.CPF_aluno = a.cpf
+        WHERE
+        f.CPF_aluno = :cpfAluno
+        AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+        AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+        GROUP BY
+        a.nome;`;
+
+  
+        const result = await connection.execute(query, { startDate, endDate, cpfAluno });
+  
+        // Verificar se a consulta retornou resultados
+        if (result.rows.length === 0) {
+          return res.status(404).json({ message: "Nenhuma visita encontrada para o aluno no período especificado." });
+        }
+  
+        // Convertendo o tempo total para horas
+        const tempoTotalEmDias = result.rows[0].TEMPO_TOTAL; 
+        const tempoTotalEmHoras = tempoTotalEmDias * 24; // Converte de dias para horas
+        const tempoTotalEmMinutos = tempoTotalEmHoras * 60; // Converte de horas para minutos
+  
+        res.json({
+          message: "Relatório gerado com sucesso!",
+          data: {
+            nome_aluno: result.rows[0].NOME_ALUNO,
+            quantidade_visitas: result.rows[0].QUANTIDADE_VISITAS,
+            tempo_total_horas: tempoTotalEmHoras.toFixed(2), // Mostrando 2 casas decimais
+            tempo_total_minutos: tempoTotalEmMinutos.toFixed(0), // Mostrando em minutos sem casas decimais
+          },
+        });
+      } catch (err) {
+        console.error("Erro ao acessar o banco:", err);
+        res.status(500).json({ message: "Erro interno no servidor." });
+      } finally {
+        if (connection) {
+          try {
+            await connection.close();
+          } catch (err) {
+            console.error("Erro ao fechar a conexão:", err);
+          }
+        }
+      }
+    }
+  );
+  
+
 // Inicia o servidor na porta especificada
 app.listen(port, () => {
     console.log(`Servidor rodando em http://localhost:${port}`); 
