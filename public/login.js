@@ -7,7 +7,8 @@ document.getElementById("form").addEventListener("submit", async function(event)
     console.log("Dados de login:", { email, senha }); 
 
     try {
-        const response = await fetch('http://localhost:3000/autenticar-aluno', {
+        // Requisição para autenticar o usuário
+        const response = await fetch('http://localhost:3000/autenticar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -17,6 +18,7 @@ document.getElementById("form").addEventListener("submit", async function(event)
 
         const result = await response.json();
 
+        // Exibe a mensagem de resposta
         const messageDiv = document.getElementById("message");
         messageDiv.innerText = result.message; 
 
@@ -26,7 +28,12 @@ document.getElementById("form").addEventListener("submit", async function(event)
         }
 
         if (result.success) {
-            window.location.href = "/area_aluno.html";
+            // Redireciona com base no tipo de usuário
+            if (result.tipo === 'admin') {
+                window.location.href = "/gerenciador.html"; // Página específica para administradores
+            } else if (result.tipo === 'aluno') {
+                window.location.href = "/area_aluno.html"; // Página específica para alunos
+            }
         }
     } catch (error) {
         console.error("Erro ao fazer login:", error);

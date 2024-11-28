@@ -260,54 +260,80 @@ app.delete('/deletar-todos-alunos', async (req, res) => {
     res.status(result.success ? 200 : 400).json(result); // Retorna a resposta com base no resultado
 });
 
-// Função para autenticar aluno
-async function autenticarAluno(email, senha) {
+// Função para autenticar usuário (detecção automática de tipo)
+async function autenticarUsuario(email, senha) {
     let connection;
     try {
-        connection = await oracledb.getConnection(dbConfig); 
-        const result = await connection.execute(
+        connection = await oracledb.getConnection(dbConfig);
+        
+        // Verifica primeiro na tabela de alunos
+        let result = await connection.execute(
             `SELECT * FROM alunos WHERE email = :email`, 
-            [email] // Busca aluno pelo email
+            [email]
         );
 
+        let tipo = 'aluno'; // Assume que é aluno
         if (result.rows.length === 0) {
-            return { success: false, message: 'Email não encontrado.' }; 
+            // Se não encontrado, verifica na tabela de administradores
+            result = await connection.execute(
+                `SELECT * FROM administradores WHERE email = :email`, 
+                [email]
+            );
+            tipo = 'admin'; // Ajusta para administrador se encontrado
         }
 
-        const aluno = result.rows[0]; // Obtém os dados do aluno
+        if (result.rows.length === 0) {
+            return { success: false, message: 'Email não encontrado em nenhuma conta.' };
+        }
 
-        const match = await bcrypt.compare(senha, aluno[3]); // Compara a senha fornecida com a armazenada
+        const usuario = result.rows[0]; // Dados do usuário encontrado
+        const senhaArmazenada = usuario[3]; // Índice da senha no resultado
+
+        const match = await bcrypt.compare(senha, senhaArmazenada); // Compara as senhas
 
         if (!match) {
-            return { success: false, message: 'Senha incorreta.' }; 
+            return { success: false, message: 'Senha incorreta.' };
         }
 
-        return { success: true, message: 'Aluno autenticado com sucesso!', aluno };
+        return { 
+            success: true, 
+            message: `${tipo === 'admin' ? 'Administrador' : 'Aluno'} autenticado com sucesso!`, 
+            usuario, 
+            tipo 
+        };
     } catch (err) {
-        console.error("Erro ao autenticar aluno:", err); 
-        return { success: false, message: 'Erro ao autenticar aluno.' }; 
+        console.error("Erro ao autenticar usuário:", err);
+        return { success: false, message: 'Erro ao autenticar usuário.' };
     } finally {
         if (connection) {
             try {
-                await connection.close(); 
+                await connection.close();
             } catch (err) {
-                console.error("Erro ao fechar a conexão:", err); 
+                console.error("Erro ao fechar a conexão:", err);
             }
         }
     }
 }
 
-// Rota para autenticar aluno
-app.post('/autenticar-aluno', async (req, res) => {
-    const { email, senha } = req.body; 
-    console.log("Autenticando aluno:", { email, senha }); // Log dos dados de entrada
-    const result = await autenticarAluno(email, senha); 
+// Rota para autenticar usuário
+app.post('/autenticar', async (req, res) => {
+    const { email, senha } = req.body;
+
+    console.log("Autenticando usuário:", { email, senha }); // Log dos dados de entrada
+    const result = await autenticarUsuario(email, senha);
     console.log("Resultado da autenticação:", result); // Log do resultado
+
     if (result.success) {
-        req.session.aluno = result.aluno; 
+        if (result.tipo === 'admin') {
+            req.session.admin = result.usuario; // Armazena na sessão como administrador
+        } else {
+            req.session.aluno = result.usuario; // Armazena na sessão como aluno
+        }
     }
+
     res.status(result.success ? 200 : 400).json(result);
 });
+
 // Rota para obter os dados do aluno autenticado
 app.get('/dados-aluno', (req, res) => {
     if (!req.session.aluno) {
