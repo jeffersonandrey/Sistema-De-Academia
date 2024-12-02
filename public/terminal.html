@@ -13,13 +13,20 @@
     <div class="container">
         <div class="box terminal">
             <h2>Registrar Entrada ou Saída</h2>
+            <label for="cpfAluno">CPF do Aluno:</label>
+            <input type="text" id="cpfAluno" placeholder="Digite o CPF do aluno" maxlength="15">
+            <br><br>
 
             <!-- Botão para Registrar a Entrada -->
             <button id="registrarEntrada" onclick="registrarEntrada()">Registrar Entrada</button>
             <br><br>
 
             <!-- Botão para Registrar a Saída -->
-            <button id="registrarSaida" onclick="registrarSaida()" disabled>Registrar Saída</button>
+            <button id="registrarSaida" onclick="registrarSaida()">Registrar Saída</button>
+            <br><br>
+
+            <!-- Mensagem de status -->
+            <div id="status" class="status"></div>
         </div>
     </div>
     <footer class="footer">
@@ -30,3 +37,4 @@
     <script src="terminal_de_entrada_saida.js"></script>
 </body>
 </html>
+
