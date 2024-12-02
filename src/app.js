@@ -344,10 +344,6 @@ app.get('/dados-aluno', (req, res) => {
 
 app.post(
     "/gerar-relatorio",
-    [
-      body("startDate").isISO8601().withMessage("Data inicial inválida."),
-      body("endDate").isISO8601().withMessage("Data final inválida."),
-    ],
     async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -379,24 +375,21 @@ app.post(
         // Caso o aluno exista, executa a consulta para gerar o relatório
         const query = `
         SELECT
-        a.nome AS nome_aluno,
-        COUNT(f.ID_frequencia) AS quantidade_visitas,
-        SUM(CASE
-            WHEN f.hora_saida IS NOT NULL THEN
-                (CAST(f.hora_saida AS DATE) - CAST(f.hora_entrada AS DATE)) * 24  -- Multiplicando por 24 para converter para horas
-            ELSE
-                0
-        END) AS tempo_total
+            a.nome AS nome_aluno,
+            COUNT(f.ID_frequencia) AS quantidade_visitas,
+            NVL(SUM(
+                (f.hora_saida - f.hora_entrada) * 24    
+            ), 0) AS tempo_total_horas
         FROM
-        frequencia f
+            frequencia f
         JOIN
-        alunos a ON f.CPF_aluno = a.cpf
+            alunos a ON TRIM(f.CPF_aluno) = TRIM(a.CPF)
         WHERE
-        f.CPF_aluno = :cpfAluno
-        AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
-        AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'YYYY-MM-DD HH24:MI:SS')
+            TRIM(f.CPF_aluno) = :cpfAluno
+            AND f.data_entrada >= TO_DATE(:startDate, 'DD-MM-YYYY')
+            AND f.data_entrada < TO_DATE(:endDate, 'DD-MM-YYYY') + 1
         GROUP BY
-        a.nome;`;
+            a.nome`;
 
   
         const result = await connection.execute(query, { startDate, endDate, cpfAluno });

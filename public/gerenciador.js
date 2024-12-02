@@ -1,57 +1,36 @@
 document.getElementById("relatorioForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Obter os valores dos campos de data
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
-    const cpfAluno = document.getElementById("cpfRelatorio").value; // Obter o CPF do aluno
+    const cpfAluno = document.getElementById("cpfRelatorio").value;
 
-    // Verificar se ambos os campos de data e o CPF foram preenchidos
     if (!startDate || !endDate || !cpfAluno) {
         alert("Por favor, preencha as datas de início, fim e o CPF do aluno.");
         return;
     }
 
-    // Função para converter a data de DD/MM/YYYY para YYYY-MM-DD
-    function formatDate(date) {
-        const parts = date.split('/'); // Separar a data em dia, mês e ano
-        return `${parts[2]}-${parts[1]}-${parts[0]}`; // Retornar no formato YYYY-MM-DD
-    }
-
-    // Converter as datas para o formato correto
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-
     try {
-        // Enviar os dados de data e CPF para o servidor
         const response = await fetch("/gerar-relatorio", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startDate: formattedStartDate, endDate: formattedEndDate, cpfAluno }), // Enviar CPF do aluno junto com as datas
+            body: JSON.stringify({ startDate, endDate, cpfAluno }),
         });
 
-        // Verificar se a resposta do servidor foi bem-sucedida
         if (!response.ok) {
-            throw new Error("Erro ao gerar relatório: " + response.statusText);
+            const error = await response.json();
+            throw new Error(error.message || "Erro ao gerar relatório.");
         }
 
-        // Processar a resposta do servidor
         const result = await response.json();
-        
-        // Verificar se há dados para exibir
+
         const resultadoDiv = document.getElementById("resultado");
-        if (result.length > 0) {
-            // Formatando o relatório
-            const aluno = result[0]; // Como estamos agrupando pelo nome do aluno, deve retornar apenas um aluno
-            const tempoTotal = aluno.tempo_total / (60 * 60); // Convertendo de segundos para horas
-            resultadoDiv.innerHTML = `
-                <p><strong>Nome do Aluno:</strong> ${aluno.nome_aluno}</p>
-                <p><strong>Quantidade de Visitas:</strong> ${aluno.quantidade_visitas}</p>
-                <p><strong>Tempo Total:</strong> ${tempoTotal.toFixed(2)} horas</p>
-            `;
-        } else {
-            resultadoDiv.innerText = "Nenhum dado encontrado para o intervalo de datas informado.";
-        }
+        resultadoDiv.innerHTML = `
+            <p><strong>Nome do Aluno:</strong> ${result.data.nome_aluno}</p>
+            <p><strong>Quantidade de Visitas:</strong> ${result.data.quantidade_visitas}</p>
+            <p><strong>Tempo Total:</strong> ${result.data.tempo_total_horas} horas</p>
+            <p><strong>Tempo Total (minutos):</strong> ${result.data.tempo_total_minutos} minutos</p>
+        `;
     } catch (error) {
         console.error("Erro ao gerar relatório:", error);
         document.getElementById("resultado").innerText = "Erro ao gerar o relatório: " + error.message;
@@ -68,37 +47,30 @@ function formatarCPF(value) {
     } else if (value.length > 0) {
         return `${value}`;
     }
-    return ''; // Retorna vazio se não houver valor
+    return '';
 }
 
-// Eventos para formatação de CPF nos campos dos dois formulários
+// Eventos para formatação de CPF
 ['cpfRelatorio', 'cpfDelete'].forEach((id) => {
     const cpfInput = document.getElementById(id);
 
-    // Formata o CPF ao sair do campo
     cpfInput.addEventListener('blur', function () {
         this.value = formatarCPF(this.value);
     });
 
-    // Permite apenas números
     cpfInput.addEventListener('input', function () {
-        this.value = this.value.replace(/\D/g, ''); // Permite apenas números
+        this.value = this.value.replace(/\D/g, '');
     });
 });
 
-// Formulário de deletação de aluno
+// Deletar aluno
 document.getElementById('deleteForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     const cpfInput = document.getElementById('cpfDelete').value;
 
-    // Confirmação antes de deletar
     const confirmDelete = confirm(`Tem certeza que deseja deletar o aluno com CPF: ${cpfInput}? Esta ação é irreversível.`);
 
-    if (!confirmDelete) {
-        return;
-    }
-
-    console.log('Tentando deletar aluno com CPF:', cpfInput);
+    if (!confirmDelete) return;
 
     try {
         const response = await fetch(`/deletar-aluno/${cpfInput}`, { method: 'DELETE' });
