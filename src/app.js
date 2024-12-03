@@ -84,7 +84,135 @@ function isValidCPF(cpf) {
     remainder = remainder === 10 || remainder === 11 ? 0 : remainder; // Ajusta o resto
     return remainder === parseInt(cpf.charAt(10)); // Retorna true ou false
 }
+app.post('/entrada', async (req, res) => {
+    const { cpf, dataEntrada, horaEntrada } = req.body;
 
+    console.log('Recebendo dados para entrada:', { cpf, dataEntrada, horaEntrada });
+    
+    // Validação de entrada
+    if (!cpf || !dataEntrada || !horaEntrada) {
+        return res.status(400).json({ message: 'CPF, data e hora são obrigatórios.' });
+    }
+
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // Verifica se o CPF existe na tabela alunos
+        const testecpf = await connection.execute(
+            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`,
+            [cpf]
+        );
+
+        // Acessa o valor do COUNT
+        const alunoExiste = testecpf.rows[0][0]; 
+        if (alunoExiste === 0) {
+            return res.status(404).json({ success: false, message: 'Aluno não encontrado. CPF inválido.' });
+        }
+
+        // Verifica se há registro de entrada sem saída
+        const frequenciaResult = await connection.execute(
+            `SELECT hora_saida FROM frequencia WHERE CPF_aluno = :cpf AND hora_saida IS NULL`,
+            [cpf]
+        );
+
+        if (frequenciaResult.rows.length > 0) {
+            return res.status(400).json({ success: false, message: 'Já existe uma entrada sem saída registrada para este aluno.' });
+        }
+
+        // Insere um novo registro na tabela de frequência
+        const sql = `
+            INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada)
+            VALUES (:cpf, TO_DATE(:dataEntrada, 'YYYY-MM-DD'), TO_TIMESTAMP(:horaEntrada, 'YYYY-MM-DD HH24:MI:SS'))
+        `;
+        
+        const binds = {
+            cpf,
+            dataEntrada,
+            horaEntrada
+        };
+
+        const result = await connection.execute(sql, binds, { autoCommit: true });
+        console.log('Entrada registrada:', result);
+
+        res.status(200).json({ message: 'Entrada registrada com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao registrar entrada:', error);
+
+        // Responde com um erro genérico em caso de falha
+        res.status(500).json({ message: 'Erro ao registrar entrada.', error: error.message });
+    } finally {
+        // Fecha a conexão com o banco de dados
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error('Erro ao fechar a conexão:', err);
+            }
+        }
+    }
+});
+
+
+// Rota para registrar a saída de um aluno
+app.post('/saida', async (req, res) => {
+    const { cpf, horasaida } = req.body;
+
+    if (!cpf) {
+        return res.status(400).json({ success: false, message: 'CPF é obrigatório.' });
+    }
+
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        // Verifica se o aluno existe na tabela 'alunos'
+        const alunoResult = await connection.execute(
+            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`,
+            [cpf]
+        );
+
+        // Se o aluno não for encontrado
+        if (alunoResult.rows[0][0] === 0) {
+            return res.status(404).json({ success: false, message: 'Aluno não encontrado.' });
+        }
+
+        // Busca o último registro de entrada sem saída registrada
+        const frequenciaResult = await connection.execute(
+            `SELECT ID_frequencia FROM frequencia 
+             WHERE CPF_aluno = :cpf AND hora_saida IS NULL 
+             ORDER BY data_entrada DESC, hora_entrada DESC FETCH FIRST 1 ROWS ONLY`,
+            [cpf]
+        );
+
+        if (frequenciaResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Nenhum registro de entrada encontrado para este aluno.' });
+        }
+
+        const idFrequencia = frequenciaResult.rows[0][0];
+
+        // Atualiza o registro com o horário de saída
+        await connection.execute(
+            `UPDATE frequencia SET hora_saida = TO_TIMESTAMP(:horaSaida, 'YYYY-MM-DD HH24:MI:SS') 
+             WHERE ID_frequencia = :id`,
+            { horasaida, id: idFrequencia },
+            { autoCommit: true }
+        );
+
+        res.json({ success: true, message: 'Saída registrada com sucesso.' });
+    } catch (err) {
+        console.error("Erro ao registrar saída:", err);
+        res.status(500).json({ success: false, message: 'Erro ao registrar saída.' });
+    } finally {
+        if (connection) {
+            try {
+                await connection.close();
+            } catch (err) {
+                console.error("Erro ao fechar a conexão:", err);
+            }
+        }
+    }
+});
 // Função para cadastrar um aluno no banco de dados
 async function cadastrarAluno(aluno) {
     let connection;

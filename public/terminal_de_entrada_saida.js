@@ -1,8 +1,44 @@
-const API_URL = 'http://localhost:3000'; // Substitua pelo endpoint da sua API
+// Função para formatar data no formato 'YYYY-MM-DD'
+function formatarData(data) {
+    const pad = (num) => (num < 10 ? `0${num}` : num);
+    const ano = data.getFullYear();
+    const mes = pad(data.getMonth() + 1); // Meses são baseados em 0
+    const dia = pad(data.getDate());
+    return `${ano}-${mes}-${dia}`;
+}
+
+// Função para formatar data e hora no formato 'YYYY-MM-DD HH:MM:SS'
+function formatarDataHora(data) {
+    const pad = (num) => (num < 10 ? `0${num}` : num);
+    const ano = data.getFullYear();
+    const mes = pad(data.getMonth() + 1); // Meses são baseados em 0
+    const dia = pad(data.getDate());
+    const horas = pad(data.getHours());
+    const minutos = pad(data.getMinutes());
+    const segundos = pad(data.getSeconds());
+    return `${ano}-${mes}-${dia} ${horas}:${minutos}:${segundos}`;
+}
+// Função para formatar CPF
+function formatarCPF(cpf) {
+    // Remove tudo o que não é número
+    cpf = cpf.replace(/\D/g, '');
+
+    // Verifica se o CPF tem 11 caracteres (o número esperado para um CPF válido)
+    if (cpf.length === 11) {
+        // Formata o CPF no formato XXX.XXX.XXX-XX
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    return cpf; // Retorna o CPF sem formatação se não tiver o número correto de dígitos
+}
+
+document.getElementById('cpfAluno').addEventListener('blur', function (e) {
+    e.target.value = formatarCPF(e.target.value);
+});
 
 // Função para registrar a entrada
 async function registrarEntrada() {
-    const cpfAluno = document.getElementById('cpfAluno').value.trim();
+    const cpfAluno = document.getElementById('cpfAluno').value.replace(/\D/g, '');
     const statusDiv = document.getElementById('status');
 
     if (!cpfAluno) {
@@ -11,18 +47,22 @@ async function registrarEntrada() {
         return;
     }
 
-    const horaAtual = new Date().toISOString();
+    const agora = new Date();
+    const dataEntrada = formatarData(agora); // Formato 'YYYY-MM-DD'
+    const horaEntrada = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
+
+    console.log('Data:', dataEntrada);
+    console.log('Hora:', horaEntrada);
 
     try {
-        const response = await fetch(`${API_URL}/entrada`, {
+        const response = await fetch(`/entrada`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cpf: cpfAluno, // Aqui você envia 'cpf' ao invés de 'cpfAluno'
-                dataEntrada: horaAtual.slice(0, 10),
-                horaEntrada: horaAtual
+                cpf: cpfAluno,
+                dataEntrada: dataEntrada,
+                horaEntrada: horaEntrada
             })
-            
         });
 
         const result = await response.json();
@@ -31,7 +71,7 @@ async function registrarEntrada() {
             statusDiv.style.color = 'green';
             document.getElementById('registrarSaida').disabled = false;
         } else {
-            statusDiv.textContent = `Erro: ${result.mensagem}`;
+            statusDiv.textContent = `Erro: ${result.message}`;
             statusDiv.style.color = 'red';
         }
     } catch (error) {
@@ -43,7 +83,7 @@ async function registrarEntrada() {
 
 // Função para registrar a saída
 async function registrarSaida() {
-    const cpfAluno = document.getElementById('cpfAluno').value.trim();
+    const cpfAluno = document.getElementById('cpfAluno').value.replace(/\D/g, '');
     const statusDiv = document.getElementById('status');
 
     if (!cpfAluno) {
@@ -52,16 +92,17 @@ async function registrarSaida() {
         return;
     }
 
-    const horaAtual = new Date().toISOString();
-
+    const agora = new Date();
+    const horasaida = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
+    console.log('Hora:', horasaida);
     try {
-        const response = await fetch(`${API_URL}/saida`, {
+        const response = await fetch(`/saida`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                cpfAluno,
-                horaSaida: horaAtual // YYYY-MM-DDTHH:mm:ss.sssZ
-            })
+                cpf: cpfAluno,
+                horasaida: horasaida
+            })  
         });
 
         const result = await response.json();
@@ -70,7 +111,7 @@ async function registrarSaida() {
             statusDiv.style.color = 'green';
             document.getElementById('registrarSaida').disabled = true;
         } else {
-            statusDiv.textContent = `Erro: ${result.mensagem}`;
+            statusDiv.textContent = `Erro: ${result.message}`;
             statusDiv.style.color = 'red';
         }
     } catch (error) {
