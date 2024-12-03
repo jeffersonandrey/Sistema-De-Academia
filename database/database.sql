@@ -1,5 +1,8 @@
 CONNECT SYSTEM/123123@localhost:1521/XEPDB1
 
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
+
+
 CREATE TABLE alunos (
     CPF VARCHAR2(11) PRIMARY KEY,
     nome VARCHAR2(50) NOT NULL,
@@ -55,28 +58,27 @@ VALUES (
 );
 
 SELECT
-    a.nome AS nome_aluno,
-    COUNT(f.ID_frequencia) AS quantidade_visitas,
-    SUM(
-        CASE
-            WHEN f.hora_saida IS NOT NULL THEN
-                (EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) +
-                EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60 +
-                EXTRACT(SECOND FROM (f.hora_saida - f.hora_entrada)) / 3600)
-            ELSE
-                0
-        END
-    ) AS tempo_total
-FROM
-    frequencia f
-JOIN
-    alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)  
-WHERE
-    TRIM(f.CPF_aluno) = :cpfAluno  
-    AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'DD-MM-YYYY HH24:MI:SS')
-    AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'DD-MM-YYYY HH24:MI:SS')
-GROUP BY
-    a.nome;
+            a.nome AS nome_aluno,
+            COUNT(f.ID_frequencia) AS quantidade_visitas,
+            SUM(
+              CASE
+                  WHEN f.hora_saida IS NOT NULL AND f.hora_entrada IS NOT NULL THEN
+                      EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) 
+                      + EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60
+                  ELSE
+                      0
+              END
+            ) AS tempo_total
+        FROM
+            frequencia f
+        JOIN
+            alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
+        WHERE
+            TRIM(f.CPF_aluno) = :cpfAluno  
+            AND f.data_entrada >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS')
+            AND f.data_entrada < TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS')
+        GROUP BY
+            a.nome;
 
 
 SELECT *
@@ -92,3 +94,10 @@ DROP TABLE frequencia;
 DROP TABLE administradores;
 DROP TABLE relatorio;
 
+SELECT * 
+FROM frequencia 
+WHERE CPF_aluno = '23951425814' 
+AND data_entrada >= TO_TIMESTAMP('2023-12-31 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
+AND data_entrada <= TO_TIMESTAMP('2023-12-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
+
+DESC frequencia;

@@ -467,7 +467,7 @@ app.get('/dados-aluno', (req, res) => {
     if (!req.session.aluno) {
         return res.status(401).json({ success: false, message: 'Usuário não autenticado.' }); // Retorna erro se não autenticado
     }
-    res.json({ success: true, aluno: req.session.aluno }); 
+    res.json({ success: true, aluno: req.session.aluno });
 });
 
 app.post("/gerar-relatorio", async (req, res) => {
@@ -475,15 +475,51 @@ app.post("/gerar-relatorio", async (req, res) => {
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-  
+
     const { startDate, endDate, cpfAluno } = req.body;
 
-    
     // Verificando se o CPF foi enviado corretamente
     if (!cpfAluno || cpfAluno.length !== 11) {
       return res.status(400).json({ message: 'CPF do aluno é obrigatório e deve ter 11 dígitos.' });
     }
-  
+
+    // Função para ajustar as datas para o primeiro e último segundo do dia
+    const ajustarDataInicioFim = (dataISO) => {
+        const data = new Date(dataISO);
+
+        // Ajustando a data para o primeiro segundo do dia (00:00:00.000)
+        const dataInicio = new Date(data);
+        dataInicio.setHours(0, 0, 0, 0);  // 00:00:00.000
+
+        // Ajustando a data para o último segundo do dia (23:59:59.999)
+        const dataFim = new Date(data);
+        dataFim.setHours(23, 59, 59, 999);  // 23:59:59.999
+
+        return {
+            inicio: dataInicio,
+            fim: dataFim
+        };
+    };
+
+    // Formatar as datas recebidas no formato esperado pelo Oracle
+    const { inicio: formattedStartDate, fim: formattedEndDate } = ajustarDataInicioFim(startDate);
+    const { inicio: formattedEndDateStart, fim: formattedEndDateEnd } = ajustarDataInicioFim(endDate);
+
+    // Função para converter datas no formato correto para Oracle
+    const formatOracleDate = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    };
+
+    // Formatar as datas ajustadas para Oracle
+    const formattedStartDateOracle = formatOracleDate(formattedStartDate);
+    const formattedEndDateOracle = formatOracleDate(formattedEndDate);
+
     let connection;
     try {
       connection = await oracledb.getConnection({
@@ -491,56 +527,57 @@ app.post("/gerar-relatorio", async (req, res) => {
         password: "123123",
         connectString: "localhost/XEPDB1",
       });
-  
+
       // Verificando se o aluno existe na tabela de alunos
       const alunoQuery = `SELECT COUNT(*) AS aluno_count FROM alunos WHERE CPF = :cpfAluno`;
       const alunoResult = await connection.execute(alunoQuery, { cpfAluno });
-  
+
       if (alunoResult.rows[0].ALUNO_COUNT === 0) {
         return res.status(404).json({ message: "Aluno não encontrado." });
       }
-  
+
       // Consultando as frequências no período e calculando o tempo total de visita
       const query = `
-  SELECT
-      a.nome AS nome_aluno,
-      COUNT(f.ID_frequencia) AS quantidade_visitas,
-      SUM(
-        CASE
-            WHEN f.hora_saida IS NOT NULL AND f.hora_entrada IS NOT NULL THEN
-                EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) 
-                + EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60
-            ELSE
-                0
-        END
-    ) AS tempo_total
-  FROM
-      frequencia f
-  JOIN
-      alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
-  WHERE
-      TRIM(f.CPF_aluno) = :cpfAluno  
-      AND f.data_entrada >= TO_TIMESTAMP(:startDate || ' 00:00:00', 'DD-MM-YYYY HH24:MI:SS')
-      AND f.data_entrada < TO_TIMESTAMP(:endDate || ' 23:59:59', 'DD-MM-YYYY HH24:MI:SS')
-  GROUP BY
-      a.nome`;
+        SELECT
+            a.nome AS nome_aluno,
+            COUNT(f.ID_frequencia) AS quantidade_visitas,
+            SUM(
+              CASE
+                  WHEN f.hora_saida IS NOT NULL AND f.hora_entrada IS NOT NULL THEN
+                      EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) 
+                      + EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60
+                  ELSE
+                      0
+              END
+            ) AS tempo_total
+        FROM
+            frequencia f
+        JOIN
+            alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
+        WHERE
+            TRIM(f.CPF_aluno) = :cpfAluno  
+            AND f.data_entrada >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS')
+            AND f.data_entrada < TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS')
+        GROUP BY
+            a.nome`;
 
-console.log(`Consultando com CPF: ${cpfAluno}, Start Date: ${startDate}, End Date: ${endDate}`);
+      console.log(`Consultando com CPF: ${cpfAluno}, Start Date: ${formattedStartDate}, End Date: ${formattedEndDate}`);
 
-const result = await connection.execute(query, { startDate, endDate, cpfAluno });
-console.log(result.rows);  // Imprime o resultado para depuração
-  
+      const result = await connection.execute(query, { 
+        startDate: formattedStartDate, 
+        endDate: formattedEndDate, 
+        cpfAluno 
+      });
+
       // Verificar se a consulta retornou resultados
       if (result.rows.length === 0) {
         return res.status(404).json({ message: "Nenhuma visita encontrada para o aluno no período especificado." });
       }
 
-      console.log(result.rows);  // Para ver todos os dados que estão sendo retornados do banco de dados
-  
       // Convertendo o tempo total de visitas (em horas)
       const tempoTotalEmHoras = result.rows[0].TEMPO_TOTAL;
-      const tempoTotalEmMinutos = tempoTotalEmHoras * 60; // Converte de horas para minutos
-  
+      const tempoTotalEmMinutos = tempoTotalEmHoras * 60;
+
       // Definindo a classificação com base no total de horas
       let classificacao;
       if (tempoTotalEmHoras < 10) {
@@ -550,24 +587,24 @@ console.log(result.rows);  // Imprime o resultado para depuração
       } else {
         classificacao = 'Alta Frequência';
       }
-  
+
       // Inserindo os dados na tabela 'relatorio'
       const insertQuery = `
         INSERT INTO relatorio (CPF_aluno, data_referencia, total_horas, classificacao)
-        VALUES (:cpf_aluno, TO_DATE(:data_referencia, 'DD-MM-YYYY'), :total_horas, :classificacao)`;
-  
-      const dataReferencia = endDate;  // A data de referência pode ser a data final do intervalo fornecido.
-  
+        VALUES (:cpf_aluno, TO_DATE(:data_referencia, 'YYYY-MM-DD'), :total_horas, :classificacao)`;
+
+      const dataReferencia = formattedEndDateOracle;
+
       await connection.execute(insertQuery, {
         cpf_aluno: cpfAluno,
-        data_referencia: dataReferencia,
+        data_referencia: formattedEndDateOracle,
         total_horas: tempoTotalEmHoras.toFixed(2),
         classificacao: classificacao,
       });
-  
+
       // Commit para garantir que os dados sejam gravados na tabela 'relatorio'
       await connection.commit();
-  
+
       // Retornando os dados para o front-end
       res.json({
         message: "Relatório gerado com sucesso e dados inseridos no banco!",
@@ -591,8 +628,9 @@ console.log(result.rows);  // Imprime o resultado para depuração
         }
       }
     }
-  });
-  
+});
+
+
   
 
 // Inicia o servidor na porta especificada
