@@ -1,20 +1,32 @@
 document.getElementById("relatorioForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Captura os valores do formulário
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
-    const cpfAluno = document.getElementById("cpfRelatorio").value;
+    const cpfAluno = document.getElementById("cpfRelatorio").value.replace(/\D/g, ''); // Remove a formatação do CPF
 
+    // Verificação dos campos obrigatórios
     if (!startDate || !endDate || !cpfAluno) {
         alert("Por favor, preencha as datas de início, fim e o CPF do aluno.");
         return;
     }
 
+    // Função para formatar a data no formato ISO
+    function formatToISO(date) {
+        const d = new Date(date);
+        return d.toISOString();  // Retorna a data no formato ISO 8601
+    }
+
+    const startDateFormatted = formatToISO(startDate);
+    const endDateFormatted = formatToISO(endDate);
+
+    // Envia os dados para o servidor
     try {
         const response = await fetch("/gerar-relatorio", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startDate, endDate, cpfAluno }),
+            body: JSON.stringify({ startDate: startDateFormatted, endDate: endDateFormatted, cpfAluno }),
         });
 
         if (!response.ok) {
@@ -24,6 +36,7 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
 
         const result = await response.json();
 
+        // Exibe os resultados na página
         const resultadoDiv = document.getElementById("resultado");
         resultadoDiv.innerHTML = `
             <p><strong>Nome do Aluno:</strong> ${result.data.nome_aluno}</p>
@@ -37,17 +50,19 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
     }
 });
 
-// Função para formatar o CPF
-function formatarCPF(value) {
-    value = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-    if (value.length > 9) {
-        return `${value.substring(0, 3)}.${value.substring(3, 6)}.${value.substring(6, 9)}-${value.substring(9, 11)}`;
-    } else if (value.length > 5) {
-        return `${value.substring(0, 3)}.${value.substring(3)}`;
-    } else if (value.length > 0) {
-        return `${value}`;
+
+// Função para formatar CPF
+function formatarCPF(cpf) {
+    // Remove tudo o que não é número
+    cpf = cpf.replace(/\D/g, '');
+
+    // Verifica se o CPF tem 11 caracteres (o número esperado para um CPF válido)
+    if (cpf.length === 11) {
+        // Formata o CPF no formato XXX.XXX.XXX-XX
+        return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
-    return '';
+
+    return cpf; // Retorna o CPF sem formatação se não tiver o número correto de dígitos
 }
 
 // Eventos para formatação de CPF
@@ -55,18 +70,21 @@ function formatarCPF(value) {
     const cpfInput = document.getElementById(id);
 
     cpfInput.addEventListener('blur', function () {
+        // Formata o CPF quando o campo perde o foco
         this.value = formatarCPF(this.value);
     });
 
     cpfInput.addEventListener('input', function () {
+        // Remove caracteres não numéricos enquanto o usuário digita
         this.value = this.value.replace(/\D/g, '');
     });
 });
 
+
 // Deletar aluno
 document.getElementById('deleteForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const cpfInput = document.getElementById('cpfDelete').value;
+    const cpfInput = document.getElementById('cpfDelete').value.replace(/\D/g, ''); // Remove a formatação
 
     const confirmDelete = confirm(`Tem certeza que deseja deletar o aluno com CPF: ${cpfInput}? Esta ação é irreversível.`);
 

@@ -13,11 +13,11 @@ document.getElementById('form').addEventListener('submit', async (event) => {
     clearMessage(); // Limpa a mensagem anterior
 
     const aluno = {
-        cpf: document.getElementById('cpf').value,
+        cpf: document.getElementById('cpf').value.replace(/\D/g, ''), 
         nome: document.getElementById('name').value,
         email: document.getElementById('email').value,
         senha: document.getElementById('senha').value,
-        telefone: document.getElementById('tel').value,  
+        telefone: document.getElementById('tel').value,
         plano: document.getElementById('dropdown').value
     };
     
@@ -44,6 +44,7 @@ document.getElementById('form').addEventListener('submit', async (event) => {
         showMessage('Erro ao cadastrar aluno. Tente novamente.'); // Mensagem de erro
     }
 });
+
 
 // Função para formatar o telefone
 function formatarTelefone(value) {

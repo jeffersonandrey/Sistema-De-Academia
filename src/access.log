@@ -1,3 +1,0 @@
-::1 - - [31/Oct/2024:07:42:58 +0000] "POST /autenticar-aluno HTTP/1.1" 404 156 "http://localhost:3000/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
-::ffff:127.0.0.1 - - [31/Oct/2024:07:43:51 +0000] "POST /autenticar-aluno HTTP/1.1" 404 156 "http://localhost:3000/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
-::1 - - [31/Oct/2024:07:44:23 +0000] "POST /autenticar-aluno HTTP/1.1" 404 156 "http://localhost:3000/login.html" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
