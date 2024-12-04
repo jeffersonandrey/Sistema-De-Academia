@@ -41,12 +41,17 @@ CREATE TABLE administradores (
     senha VARCHAR2(100)
 );
 
-INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada, hora_saida)
+INSERT INTO frequencia (
+    CPF_aluno, 
+    data_entrada,
+    hora_entrada, 
+    hora_saida
+) 
 VALUES (
-    '23951425814',                         
-    TO_DATE('20-11-2024', 'DD-MM-YYYY'),      
-    TO_TIMESTAMP('20-11-2024 09:00:00', 'DD-MM-YYYY HH24:MI:SS'),  
-    TO_TIMESTAMP('20-11-2024 16:30:00', 'DD-MM-YYYY HH24:MI:SS')   
+    '23951425814',
+    TO_DATE('2024-12-04', 'YYYY-MM-DD'),
+    TO_TIMESTAMP('2024-12-04 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
+    TO_TIMESTAMP('2024-12-04 10:00:00', 'YYYY-MM-DD HH24:MI:SS')
 );
 
 INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada, hora_saida)

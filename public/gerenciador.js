@@ -5,6 +5,8 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
     const cpfAluno = document.getElementById("cpfRelatorio").value.replace(/\D/g, ''); // Remove a formatação do CPF
+    console.log('startDate:', startDate)
+    console.log('endDate:', endDate)
 
     // Verificação dos campos obrigatórios
     if (!startDate || !endDate || !cpfAluno) {
@@ -20,6 +22,8 @@ document.getElementById("relatorioForm").addEventListener("submit", async (e) =>
 
     const startDateFormatted = formatToISO(startDate);
     const endDateFormatted = formatToISO(endDate);
+    console.log(`startDate formatada:`, startDateFormatted)
+    console.log(`endDate formatada:`, endDateFormatted)
 
     // Envia os dados para o servidor
     try {
