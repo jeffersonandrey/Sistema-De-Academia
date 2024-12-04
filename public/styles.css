@@ -118,18 +118,11 @@ button:hover {
     box-shadow: 0 4px 8px rgba(255, 76, 76, 0.5);
     color: var(--text-color-light);
 }
-.tabela {
-    width: 50%;
-    border-collapse: collapse;
-    margin: 20px auto;
-    font-family: Arial, Helvetica, sans-serif;
-    background-color: var(--secondary-color);
-    color: var(--text-color-light);
-    box-shadow: 0 4px 8px rgba(255, 76, 76, 0.5);
-}
+
 /* Estilo para a tabela */
 table {
-    width: 50%;
+    width: 100%;
+    align-items: center;
     border-collapse: collapse;
     margin: 20px auto;
     font-family: Arial, Helvetica, sans-serif;

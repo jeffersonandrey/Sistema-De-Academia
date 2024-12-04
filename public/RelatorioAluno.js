@@ -24,7 +24,7 @@ function mostrarHorasUltimaSemanaAluno() {
 }
 
 function exibirTabela(data) {
-    const tabelaDiv = document.getElementById('tabela');
+    const tabelaDiv = document.getElementById('table');
     tabelaDiv.innerHTML = ''; // Limpa a tabela anterior
 
     // Verifica se os dados retornaram uma mensagem de erro
