@@ -6,6 +6,7 @@ const express = require('express'); // Framework para criar aplicações web em 
 const bcrypt = require('bcrypt'); // Biblioteca para hashing de senhas
 const session = require('express-session'); // Middleware para gerenciar sessões de usuários
 const { body, validationResult } = require('express-validator'); // Middleware para validação de dados de entrada
+const { start } = require('repl');
 
 // Configuração do banco de dados Oracle
 const dbConfig = {
@@ -483,42 +484,23 @@ app.post("/gerar-relatorio", async (req, res) => {
       return res.status(400).json({ message: 'CPF do aluno é obrigatório e deve ter 11 dígitos.' });
     }
 
-    // Função para ajustar as datas para o primeiro e último segundo do dia
-    const ajustarDataInicioFim = (dataISO) => {
-        const data = new Date(dataISO);
+    console.log(startDate, endDate);
 
-        // Ajustando a data para o primeiro segundo do dia (00:00:00.000)
-        const dataInicio = new Date(data);
-        dataInicio.setHours(0, 0, 0, 0);  // 00:00:00.000
+    function formatDate(dateString) {
+        // Extrai as partes da data
+        const [datePart, timePart] = dateString.split('T');
+        const [year, month, day] = datePart.split('-');
+        const [hours, minutes, seconds] = timePart.split(':');
+    
+        // Formata a data no formato YYYY-MM-DD HH24:MI:SS
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds.substring(0, 2)}`;
+    }
 
-        // Ajustando a data para o último segundo do dia (23:59:59.999)
-        const dataFim = new Date(data);
-        dataFim.setHours(23, 59, 59, 999);  // 23:59:59.999
+    function formatTime(date) {
+        const [timePart] = date.split(' ');
 
-        return {
-            inicio: dataInicio,
-            fim: dataFim
-        };
-    };
-
-    // Formatar as datas recebidas no formato esperado pelo Oracle
-    const { inicio: formattedStartDate, fim: formattedEndDate } = ajustarDataInicioFim(startDate);
-    const { inicio: formattedEndDateStart, fim: formattedEndDateEnd } = ajustarDataInicioFim(endDate);
-
-    // Função para converter datas no formato correto para Oracle
-    const formatOracleDate = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    };
-
-    // Formatar as datas ajustadas para Oracle
-    const formattedStartDateOracle = formatOracleDate(formattedStartDate);
-    const formattedEndDateOracle = formatOracleDate(formattedEndDate);
+        return `${timePart} 23:59:59`;
+    }
 
     let connection;
     try {
@@ -561,11 +543,11 @@ app.post("/gerar-relatorio", async (req, res) => {
         GROUP BY
             a.nome`;
 
-      console.log(`Consultando com CPF: ${cpfAluno}, Start Date: ${formattedStartDate}, End Date: ${formattedEndDate}`);
+      console.log(`Consultando com CPF: ${cpfAluno}, Start Date: ${formatDate(startDate)}, End Date: ${formatTime(formatDate(endDate))}`);
 
       const result = await connection.execute(query, { 
-        startDate: formattedStartDate, 
-        endDate: formattedEndDate, 
+        startDate: formatDate(startDate), 
+        endDate: formatTime(formatDate(endDate)), 
         cpfAluno 
       });
 
@@ -591,14 +573,12 @@ app.post("/gerar-relatorio", async (req, res) => {
       // Inserindo os dados na tabela 'relatorio'
       const insertQuery = `
         INSERT INTO relatorio (CPF_aluno, data_referencia, total_horas, classificacao)
-        VALUES (:cpf_aluno, TO_DATE(:data_referencia, 'YYYY-MM-DD'), :total_horas, :classificacao)`;
-
-      const dataReferencia = formattedEndDateOracle;
+        VALUES (:cpf_aluno, TO_TIMESTAMP(:data_referencia, 'YYYY-MM-DD HH24:MI:SS'), :total_horas, :classificacao)`;
 
       await connection.execute(insertQuery, {
         cpf_aluno: cpfAluno,
-        data_referencia: formattedEndDateOracle,
-        total_horas: tempoTotalEmHoras.toFixed(2),
+        data_referencia: formatDate(startDate),
+        total_horas: tempoTotalEmHoras,
         classificacao: classificacao,
       });
 
@@ -611,8 +591,8 @@ app.post("/gerar-relatorio", async (req, res) => {
         data: {
           nome_aluno: result.rows[0].NOME_ALUNO,
           quantidade_visitas: result.rows[0].QUANTIDADE_VISITAS,
-          tempo_total_horas: tempoTotalEmHoras.toFixed(2),
-          tempo_total_minutos: tempoTotalEmMinutos.toFixed(0),
+          tempo_total_horas: tempoTotalEmHoras,
+          tempo_total_minutos: tempoTotalEmMinutos,
           classificacao: classificacao,
         },
       });
