@@ -86,12 +86,12 @@ function isValidCPF(cpf) {
     return remainder === parseInt(cpf.charAt(10)); // Retorna true ou false
 }
 app.post('/entrada', async (req, res) => {
-    const { cpf, dataEntrada, horaEntrada } = req.body;
+    const { cpf, Entrada } = req.body;
 
-    console.log('Recebendo dados para entrada:', { cpf, dataEntrada, horaEntrada });
+    console.log('Recebendo dados para entrada:', { cpf, Entrada });
     
     // Validação de entrada
-    if (!cpf || !dataEntrada || !horaEntrada) {
+    if (!cpf || !Entrada) {
         return res.status(400).json({ message: 'CPF, data e hora são obrigatórios.' });
     }
 
@@ -113,7 +113,7 @@ app.post('/entrada', async (req, res) => {
 
         // Verifica se há registro de entrada sem saída
         const frequenciaResult = await connection.execute(
-            `SELECT hora_saida FROM frequencia WHERE CPF_aluno = :cpf AND hora_saida IS NULL`,
+            `SELECT Saida FROM frequencia WHERE CPF_aluno = :cpf AND Saida IS NULL`,
             [cpf]
         );
 
@@ -123,14 +123,13 @@ app.post('/entrada', async (req, res) => {
 
         // Insere um novo registro na tabela de frequência
         const sql = `
-            INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada)
-            VALUES (:cpf, TO_DATE(:dataEntrada, 'YYYY-MM-DD'), TO_TIMESTAMP(:horaEntrada, 'YYYY-MM-DD HH24:MI:SS'))
+            INSERT INTO frequencia (CPF_aluno, Entrada)
+            VALUES (:cpf,TO_TIMESTAMP(:Entrada, 'YYYY-MM-DD HH24:MI:SS'))
         `;
         
         const binds = {
             cpf,
-            dataEntrada,
-            horaEntrada
+            Entrada
         };
 
         const result = await connection.execute(sql, binds, { autoCommit: true });
@@ -157,7 +156,7 @@ app.post('/entrada', async (req, res) => {
 
 // Rota para registrar a saída de um aluno
 app.post('/saida', async (req, res) => {
-    const { cpf, horasaida } = req.body;
+    const { cpf, Saida } = req.body;
 
     if (!cpf) {
         return res.status(400).json({ success: false, message: 'CPF é obrigatório.' });
@@ -181,8 +180,8 @@ app.post('/saida', async (req, res) => {
         // Busca o último registro de entrada sem saída registrada
         const frequenciaResult = await connection.execute(
             `SELECT ID_frequencia FROM frequencia 
-             WHERE CPF_aluno = :cpf AND hora_saida IS NULL 
-             ORDER BY data_entrada DESC, hora_entrada DESC FETCH FIRST 1 ROWS ONLY`,
+             WHERE CPF_aluno = :cpf AND Saida IS NULL 
+             ORDER BY Entrada DESC, Entrada DESC FETCH FIRST 1 ROWS ONLY`,
             [cpf]
         );
 
@@ -194,9 +193,9 @@ app.post('/saida', async (req, res) => {
 
         // Atualiza o registro com o horário de saída
         await connection.execute(
-            `UPDATE frequencia SET hora_saida = TO_TIMESTAMP(:horaSaida, 'YYYY-MM-DD HH24:MI:SS') 
+            `UPDATE frequencia SET Saida = TO_TIMESTAMP(:Saida, 'YYYY-MM-DD HH24:MI:SS') 
              WHERE ID_frequencia = :id`,
-            { horasaida, id: idFrequencia },
+            { Saida, id: idFrequencia },
             { autoCommit: true }
         );
 
@@ -524,9 +523,9 @@ app.post("/gerar-relatorio", async (req, res) => {
                 COUNT(f.ID_frequencia) AS quantidade_visitas,
                 SUM(
                     CASE
-                        WHEN f.hora_saida IS NOT NULL AND f.hora_entrada IS NOT NULL THEN
-                            EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) 
-                            + EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60
+                        WHEN f.Saida IS NOT NULL AND f.Entrada IS NOT NULL THEN
+                            EXTRACT(HOUR FROM (f.Saida - f.Entrada)) 
+                            + EXTRACT(MINUTE FROM (f.Saida - f.Entrada)) / 60
                         ELSE
                             0
                     END
@@ -678,6 +677,48 @@ app.get('/getHorasUltimaSemana', async (req, res) => {
         }));
 
         res.json(alunosHorasUltimaSemana);
+    } catch (error) {
+        console.error('Erro ao obter dados:', error);
+        res.status(500).send('Erro ao obter dados');
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+});
+app.get('/getHorasUltimaSemanaAluno', async (req, res) => {
+    let connection;
+    try {
+        const { cpf } = req.query; // Obtém o CPF da consulta
+        console.log('CPF recebido:', cpf);
+
+        if (!cpf) {
+            return res.status(400).send('CPF é obrigatório');
+        }
+
+        connection = await oracledb.getConnection(dbConfig);
+
+        const result = await connection.execute(
+            `SELECT aluno.nome, 
+                    SUM(ROUND((CAST(f.saida AS DATE) - CAST(f.entrada AS DATE)) * 24, 2)) AS horas
+             FROM aluno
+             JOIN frequencia f ON aluno.cpf = f.cpf_aluno
+             WHERE aluno.cpf = :cpf
+               AND f.entrada >= SYSDATE - INTERVAL '7' DAY
+             GROUP BY aluno.nome`,
+            { cpf } // Parâmetro para o CPF
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ mensagem: 'Nenhum registro encontrado para este CPF' });
+        }
+
+        const alunoHorasUltimaSemana = {
+            nome: result.rows[0][0],
+            horas: result.rows[0][1]
+        };
+
+        res.json(alunoHorasUltimaSemana);
     } catch (error) {
         console.error('Erro ao obter dados:', error);
         res.status(500).send('Erro ao obter dados');

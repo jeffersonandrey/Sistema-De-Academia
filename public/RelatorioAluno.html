@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="PT-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Área do Aluno</title>
+        <link href="styles.css" rel="stylesheet"/>
+    </head>
+<body>
+    <main>
+        <div class="header">
+            <h1><a href="index.html">Academia</a></h1>
+        </div>
+        <div class="container" id="container">
+            <h1>Relatórios de Treinamento</h1>
+    
+            <div>
+                <input type="text" id="cpfAluno" placeholder="Digite o seu CPF" maxlength="11" required>
+                <button onclick="mostrarHorasUltimaSemanaAluno()">Total de horas na última semana</button>
+            </div>
+            <div id="tabela"></div>
+        </div>
+        <hr>
+    </main> 
+    <footer class="footer">
+        <p><a href="login.html">Link</a> para o login</p>
+    </footer>
+</body>
+<script src = relatorio.js></script>
+</html>

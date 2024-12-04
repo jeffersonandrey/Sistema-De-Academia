@@ -1,12 +1,3 @@
-// Função para formatar data no formato 'YYYY-MM-DD'
-function formatarData(data) {
-    const pad = (num) => (num < 10 ? `0${num}` : num);
-    const ano = data.getFullYear();
-    const mes = pad(data.getMonth() + 1); // Meses são baseados em 0
-    const dia = pad(data.getDate());
-    return `${ano}-${mes}-${dia}`;
-}
-
 // Função para formatar data e hora no formato 'YYYY-MM-DD HH:MM:SS'
 function formatarDataHora(data) {
     const pad = (num) => (num < 10 ? `0${num}` : num);
@@ -48,11 +39,9 @@ async function registrarEntrada() {
     }
 
     const agora = new Date();
-    const dataEntrada = formatarData(agora); // Formato 'YYYY-MM-DD'
-    const horaEntrada = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
+    const Entrada = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
 
-    console.log('Data:', dataEntrada);
-    console.log('Hora:', horaEntrada);
+    console.log('Hora:', Entrada);
 
     try {
         const response = await fetch(`/entrada`, {
@@ -60,8 +49,7 @@ async function registrarEntrada() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 cpf: cpfAluno,
-                dataEntrada: dataEntrada,
-                horaEntrada: horaEntrada
+                Entrada: Entrada
             })
         });
 
@@ -93,15 +81,15 @@ async function registrarSaida() {
     }
 
     const agora = new Date();
-    const horasaida = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
-    console.log('Hora:', horasaida);
+    const Saida = formatarDataHora(agora); // Formato 'YYYY-MM-DD HH:MM:SS'
+    console.log('Hora:', Saida);
     try {
         const response = await fetch(`/saida`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 cpf: cpfAluno,
-                horasaida: horasaida
+                Saida: Saida
             })  
         });
 
@@ -118,5 +106,5 @@ async function registrarSaida() {
         console.error('Erro ao registrar saída:', error);
         statusDiv.textContent = 'Erro ao registrar saída. Tente novamente.';
         statusDiv.style.color = 'red';
-    }
+    }   
 }
