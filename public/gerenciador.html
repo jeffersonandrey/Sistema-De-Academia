@@ -13,19 +13,18 @@
         </div>
         
         <!-- Formulário para gerar relatório -->
-        <form id="relatorioForm">
-            <div class="container" id="container">
-                <h1>Relatórios de horas</h1>
-        
-                <div>
-                    <button onclick="mostrarHorasTotais()">Total de horas de treinamento</button>
-                    <button onclick="mostrarHorasUltimaSemana()">Total de horas na última semana</button>
-                    <button onclick="relatorioClassificaçao()">Classificação de Alunos</button>
-                </div>
-            
-                <div id="table"></div>
+        <div class="container" id="container">
+            <h1>Relatórios de horas</h1>
+    
+            <div>
+                <button onclick="mostrarHorasTotais()">Total de horas de treinamento</button>
+                <button onclick="mostrarHorasUltimaSemana()">Total de horas na última semana</button>
+                <button onclick="relatorioClassificacao()">Classificação de Alunos</button>
             </div>
-        </form>
+        
+            <div id="table"></div>
+        </div>
+
         <!-- Formulário para deletar aluno -->
         <form id="deleteForm">
             <div class="container" id="container">
@@ -39,6 +38,5 @@
         <div id="resultado"></div> <!-- Onde os resultados do relatório serão exibidos -->
     </main>   
     <script src="gerenciador.js"></script>
-    <script src="Gerenciador_relatorio.js"></script>
 </body>
 </html>

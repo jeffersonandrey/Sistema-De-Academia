@@ -1,72 +1,12 @@
-document.getElementById("relatorioForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    // Captura os valores do formulário
-    const startDate = document.getElementById("startDate").value;
-    const endDate = document.getElementById("endDate").value;
-    const cpfAluno = document.getElementById("cpfRelatorio").value.replace(/\D/g, ''); // Remove a formatação do CPF
-    console.log('startDate:', startDate)
-    console.log('endDate:', endDate)
-
-    // Verificação dos campos obrigatórios
-    if (!startDate || !endDate || !cpfAluno) {
-        alert("Por favor, preencha as datas de início, fim e o CPF do aluno.");
-        return;
-    }
-
-    // Função para formatar a data no formato ISO
-    function formatToISO(date) {
-        const d = new Date(date);
-        return d.toISOString();  // Retorna a data no formato ISO 8601
-    }
-
-    const startDateFormatted = formatToISO(startDate);
-    const endDateFormatted = formatToISO(endDate);
-    console.log(`startDate formatada:`, startDateFormatted)
-    console.log(`endDate formatada:`, endDateFormatted)
-
-    // Envia os dados para o servidor
-    try {
-        const response = await fetch("/gerar-relatorio", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ startDate: startDateFormatted, endDate: endDateFormatted, cpfAluno }),
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || "Erro ao gerar relatório.");
-        }
-
-        const result = await response.json();
-
-        // Exibe os resultados na página
-        const resultadoDiv = document.getElementById("resultado");
-        resultadoDiv.innerHTML = `
-            <p><strong>Nome do Aluno:</strong> ${result.data.nome_aluno}</p>
-            <p><strong>Quantidade de Visitas:</strong> ${result.data.quantidade_visitas}</p>
-            <p><strong>Tempo Total:</strong> ${result.data.tempo_total_horas} horas</p>
-            <p><strong>Tempo Total (minutos):</strong> ${result.data.tempo_total_minutos} minutos</p>
-        `;
-    } catch (error) {
-        console.error("Erro ao gerar relatório:", error);
-        document.getElementById("resultado").innerText = "Erro ao gerar o relatório: " + error.message;
-    }
-});
-
-
 // Função para formatar CPF
 function formatarCPF(cpf) {
-    // Remove tudo o que não é número
     cpf = cpf.replace(/\D/g, '');
 
-    // Verifica se o CPF tem 11 caracteres (o número esperado para um CPF válido)
     if (cpf.length === 11) {
-        // Formata o CPF no formato XXX.XXX.XXX-XX
         return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
 
-    return cpf; // Retorna o CPF sem formatação se não tiver o número correto de dígitos
+    return cpf; 
 }
 
 // Eventos para formatação de CPF
@@ -74,21 +14,18 @@ function formatarCPF(cpf) {
     const cpfInput = document.getElementById(id);
 
     cpfInput.addEventListener('blur', function () {
-        // Formata o CPF quando o campo perde o foco
         this.value = formatarCPF(this.value);
     });
 
     cpfInput.addEventListener('input', function () {
-        // Remove caracteres não numéricos enquanto o usuário digita
         this.value = this.value.replace(/\D/g, '');
     });
 });
 
-
 // Deletar aluno
 document.getElementById('deleteForm').addEventListener('submit', async (event) => {
     event.preventDefault();
-    const cpfInput = document.getElementById('cpfDelete').value.replace(/\D/g, ''); // Remove a formatação
+    const cpfInput = document.getElementById('cpfDelete').value.replace(/\D/g, '');
 
     const confirmDelete = confirm(`Tem certeza que deseja deletar o aluno com CPF: ${cpfInput}? Esta ação é irreversível.`);
 
@@ -117,3 +54,142 @@ document.getElementById('deleteAll').addEventListener('click', async () => {
         alert('Erro ao deletar todos os alunos.');
     }
 });
+
+function mostrarHorasTotais() {
+    fetch('/getHorasTotais')  
+        .then(response => response.json())
+        .then(data => {
+            exibirTabela(data);
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+function mostrarHorasUltimaSemana() {
+    fetch('/getHorasUltimaSemana')  
+        .then(response => response.json())
+        .then(data => {
+            exibirTabelaSemanal(data);
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+function relatorioClassificacao() {
+    fetch('/getHorasUltimaSemana')  
+        .then(response => response.json())
+        .then(data => {
+            exibirTabelaClass(data);
+        })
+        .catch(error => console.error('Erro:', error));
+}
+
+function exibirTabela(data) {
+    const tabelaContainer = document.getElementById('table');
+    tabelaContainer.innerHTML = '';
+
+    if (data.length === 0) {
+        tabelaContainer.innerHTML = '<p>Sem dados para exibir.</p>';
+        return;
+    }
+
+    let tabelaHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Total de Horas</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    data.forEach(aluno => {
+        tabelaHTML += `
+            <tr>
+                <td>${aluno.nome}</td>
+                <td>${aluno.horas}</td>
+            </tr>
+        `;
+    });
+
+    tabelaHTML += '</tbody></table>';
+    tabelaContainer.innerHTML = tabelaHTML;
+}
+
+function exibirTabelaSemanal(data) {
+    const tabelaContainer = document.getElementById('table');
+    tabelaContainer.innerHTML = '';
+
+    if (data.length === 0) {
+        tabelaContainer.innerHTML = '<p>Sem dados para exibir.</p>';
+        return;
+    }
+
+    let tabelaHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Horas Semanais</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    data.forEach(aluno => {
+        tabelaHTML += `
+            <tr>
+                <td>${aluno.nome}</td>
+                <td>${aluno.horas}</td>
+            </tr>
+        `;
+    });
+
+    tabelaHTML += '</tbody></table>';
+    tabelaContainer.innerHTML = tabelaHTML;
+}
+
+function exibirTabelaClass(data) {
+    const tabelaContainer = document.getElementById('table');
+    tabelaContainer.innerHTML = '';
+
+    if (data.length === 0) {
+        tabelaContainer.innerHTML = '<p>Sem dados para exibir.</p>';
+        return;
+    }
+
+    data.sort((a, b) => b.horas - a.horas);
+
+    let tabelaHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Aluno</th>
+                    <th>Classificação</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    data.forEach(aluno => {
+        let classificacao = '';
+        if (aluno.horas <= 5) {
+            classificacao = 'Iniciante';
+        } else if (aluno.horas <= 10) {
+            classificacao = 'Intermediário';
+        } else if (aluno.horas <= 20) {
+            classificacao = 'Avançado';
+        } else {
+            classificacao = 'Extremamente Avançado';
+        }
+
+        tabelaHTML += `
+            <tr>
+                <td>${aluno.nome}</td>
+                <td>${classificacao}</td>
+            </tr>
+        `;
+    });
+
+    tabelaHTML += '</tbody></table>';
+    tabelaContainer.innerHTML = tabelaHTML;
+}
