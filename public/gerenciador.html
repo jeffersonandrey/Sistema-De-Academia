@@ -15,18 +15,14 @@
         <!-- Formulário para gerar relatório -->
         <form id="relatorioForm">
             <div class="container" id="container">
-                <h2>Sistema gerencial da academia</h2>
-                <label for="cpfAluno">Insira o CPF do Aluno: </label>
-                <input id="cpfRelatorio" type="text" placeholder="Insira o CPF do Aluno" maxlength="11" required>
-                <br><br>
-                
-                <label for="startDate">Data Inicial:</label>
-                <input type="date" id="startDate" name="startDate" required><br><br>
+                <h1>Relatórios de Treinamento</h1>
+        
+                <div>
+                    <button onclick="mostrarHorasTotais()">Total de horas de treinamento</button>
+                    <button onclick="mostrarHorasUltimaSemana()">Total de horas na última semana</button>
+                </div>
             
-                <label for="endDate">Data Final:</label>
-                <input type="date" id="endDate" name="endDate" required><br><br>
-            
-                <button type="submit">Gerar Relatório</button>
+                <div id="tabela"></div>
             </div>
         </form>
 
@@ -43,5 +39,6 @@
         <div id="resultado"></div> <!-- Onde os resultados do relatório serão exibidos -->
     </main>   
     <script src="gerenciador.js"></script>
+    <script src="relatorio.js"></script>
 </body>
 </html>
