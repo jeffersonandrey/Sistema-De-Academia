@@ -70,7 +70,7 @@ function formatarCPF(cpf) {
 }
 
 // Eventos para formatação de CPF
-['cpfRelatorio', 'cpfDelete'].forEach((id) => {
+['cpfDelete'].forEach((id) => {
     const cpfInput = document.getElementById(id);
 
     cpfInput.addEventListener('blur', function () {

@@ -383,7 +383,7 @@ async function deletarTodosAlunos() {
 }
 
 // Rota para deletar todos os aluno
-app.delete('/deletar-todos-aluno', async (req, res) => {
+app.delete('/deletar-todos-alunos', async (req, res) => {
     const result = await deletarTodosAlunos(); // Chama a função para deletar todos os aluno
     res.status(result.success ? 200 : 400).json(result); // Retorna a resposta com base no resultado
 });
