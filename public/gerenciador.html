@@ -15,14 +15,26 @@
         <!-- Formulário para gerar relatório -->
         <form id="relatorioForm">
             <div class="container" id="container">
-                <h1>Relatórios de Treinamento</h1>
+                <h1>Relatórios de horas</h1>
         
                 <div>
                     <button onclick="mostrarHorasTotais()">Total de horas de treinamento</button>
                     <button onclick="mostrarHorasUltimaSemana()">Total de horas na última semana</button>
                 </div>
             
-                <div id="tabela"></div>
+                <div id="table"></div>
+            </div>
+        </form>
+
+        <form id="relatorioForm">
+            <div class="container" id="container">
+                <h1>Relatórios de classificação</h1>
+        
+                <div>
+                    <button onclick="relatorioClassificação()">Classificação de Alunos</button>
+                </div>
+            
+                <div id="table"></div>
             </div>
         </form>
 

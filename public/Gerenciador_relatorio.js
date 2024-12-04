@@ -15,33 +15,9 @@ function mostrarHorasUltimaSemana() {
         })
         .catch(error => console.error('Erro:', error));
 }
-function mostrarHorasUltimaSemanaAluno() {
-    const cpfAluno = document.getElementById('cpfAluno').value;
-
-    if (!cpfAluno || cpfAluno.length !== 11) {
-        alert('Por favor, insira um CPF válido com 11 dígitos.');
-        return;
-    }
-
-    // Faz a requisição ao backend com o CPF como parâmetro
-    fetch(`/getHorasUltimaSemanaAluno?cpf=${cpfAluno}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao buscar dados: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            exibirTabela(data);
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao buscar dados. Confira o CPF e tente novamente.');
-        });
-}
 
 function exibirTabela(data) {
-    const tabelaContainer = document.getElementById('tabela');
+    const tabelaContainer = document.getElementById('table');
     tabelaContainer.innerHTML = '';
 
     if (data.length === 0) {
