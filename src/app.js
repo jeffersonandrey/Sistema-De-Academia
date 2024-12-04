@@ -99,9 +99,9 @@ app.post('/entrada', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
 
-        // Verifica se o CPF existe na tabela alunos
+        // Verifica se o CPF existe na tabela aluno
         const testecpf = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`,
+            `SELECT COUNT(*) AS count FROM aluno WHERE cpf = :cpf`,
             [cpf]
         );
 
@@ -167,9 +167,9 @@ app.post('/saida', async (req, res) => {
     try {
         connection = await oracledb.getConnection(dbConfig);
 
-        // Verifica se o aluno existe na tabela 'alunos'
+        // Verifica se o aluno existe na tabela 'aluno'
         const alunoResult = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`,
+            `SELECT COUNT(*) AS count FROM aluno WHERE cpf = :cpf`,
             [cpf]
         );
 
@@ -222,7 +222,7 @@ async function cadastrarAluno(aluno) {
 
         // Verificação de CPF, telefone e email duplicados
         const checkCpfResult = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`, 
+            `SELECT COUNT(*) AS count FROM aluno WHERE cpf = :cpf`, 
             [aluno.cpf] 
         );
 
@@ -231,7 +231,7 @@ async function cadastrarAluno(aluno) {
         }
 
         const checkTelefoneResult = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE telefone = :telefone`, 
+            `SELECT COUNT(*) AS count FROM aluno WHERE telefone = :telefone`, 
             [aluno.telefone] 
         );
 
@@ -240,7 +240,7 @@ async function cadastrarAluno(aluno) {
         }
 
         const checkEmailResult = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE email = :email`, 
+            `SELECT COUNT(*) AS count FROM aluno WHERE email = :email`, 
             [aluno.email] 
         );
 
@@ -253,7 +253,7 @@ async function cadastrarAluno(aluno) {
 
         // Insere o aluno no banco de dados
         await connection.execute(
-            `INSERT INTO alunos (nome, email, telefone, cpf, plano, senha) VALUES (:nome, :email, :telefone, :cpf, :plano, :senha)`,
+            `INSERT INTO aluno (nome, email, telefone, cpf, plano, senha) VALUES (:nome, :email, :telefone, :cpf, :plano, :senha)`,
             [aluno.nome, aluno.email, aluno.telefone, aluno.cpf, aluno.plano, hashedPassword], 
             { autoCommit: true } // Confirma a transação automaticamente
         );
@@ -309,7 +309,7 @@ async function deletarAluno(cpf) {
         
         // Verifica se o aluno existe
         const checkResult = await connection.execute(
-            `SELECT COUNT(*) AS count FROM alunos WHERE cpf = :cpf`, 
+            `SELECT COUNT(*) AS count FROM aluno WHERE cpf = :cpf`, 
             [cpf]
         );
 
@@ -326,7 +326,7 @@ async function deletarAluno(cpf) {
 
             // Se o aluno existe, deletar
             await connection.execute(
-                `DELETE FROM alunos WHERE cpf = :cpf`, 
+                `DELETE FROM aluno WHERE cpf = :cpf`, 
                 [cpf], 
                 { autoCommit: true } // Confirma a transação automaticamente
             );
@@ -361,17 +361,17 @@ async function deletarTodosAlunos() {
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        // Deleta todos os alunos da tabela
+        // Deleta todos os aluno da tabela
         await connection.execute(
-            `DELETE FROM alunos`, 
+            `DELETE FROM aluno`, 
             [], 
             { autoCommit: true } // Confirma a transação automaticamente
         );
 
-        return { success: true, message: 'Todos os alunos deletados com sucesso!' }; 
+        return { success: true, message: 'Todos os aluno deletados com sucesso!' }; 
     } catch (err) {
-        console.error("Erro ao deletar todos os alunos:", err); 
-        return { success: false, message: 'Erro ao deletar todos os alunos.' }; 
+        console.error("Erro ao deletar todos os aluno:", err); 
+        return { success: false, message: 'Erro ao deletar todos os aluno.' }; 
     } finally {
         if (connection) {
             try {
@@ -383,9 +383,9 @@ async function deletarTodosAlunos() {
     }
 }
 
-// Rota para deletar todos os alunos
-app.delete('/deletar-todos-alunos', async (req, res) => {
-    const result = await deletarTodosAlunos(); // Chama a função para deletar todos os alunos
+// Rota para deletar todos os aluno
+app.delete('/deletar-todos-aluno', async (req, res) => {
+    const result = await deletarTodosAlunos(); // Chama a função para deletar todos os aluno
     res.status(result.success ? 200 : 400).json(result); // Retorna a resposta com base no resultado
 });
 
@@ -395,9 +395,9 @@ async function autenticarUsuario(email, senha) {
     try {
         connection = await oracledb.getConnection(dbConfig);
         
-        // Verifica primeiro na tabela de alunos
+        // Verifica primeiro na tabela de aluno
         let result = await connection.execute(
-            `SELECT * FROM alunos WHERE email = :email`, 
+            `SELECT * FROM aluno WHERE email = :email`, 
             [email]
         );
 
@@ -510,7 +510,7 @@ app.post("/gerar-relatorio", async (req, res) => {
         });
 
         // Verificando se o aluno existe no banco
-        const alunoQuery = `SELECT COUNT(*) AS aluno_count FROM alunos WHERE CPF = :cpfAluno`;
+        const alunoQuery = `SELECT COUNT(*) AS aluno_count FROM aluno WHERE CPF = :cpfAluno`;
         const alunoResult = await connection.execute(alunoQuery, { cpfAluno });
 
         if (alunoResult.rows[0].ALUNO_COUNT === 0) {
@@ -534,7 +534,7 @@ app.post("/gerar-relatorio", async (req, res) => {
             FROM
                 frequencia f
             JOIN
-                alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
+                aluno a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
             WHERE
                 TRIM(f.CPF_aluno) = :cpfAluno  
                 AND f.data_entrada >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS')
@@ -625,3 +625,65 @@ app.use(errorHandler);
 
 // Testa a conexão ao iniciar o servidor
 testConnection();
+
+
+app.get('/getHorasTotais', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        const result = await connection.execute(
+            `SELECT aluno.nome, 
+                    SUM(ROUND((CAST(f.saida AS DATE) - CAST(f.entrada AS DATE)) * 24, 2)) AS horas
+             FROM aluno
+             JOIN frequencia f ON aluno.cpf = f.cpf_aluno
+             GROUP BY aluno.nome
+             ORDER BY aluno.nome`
+        );
+
+        const alunosHorasTotais = result.rows.map(row => ({
+            nome: row[0],
+            horas: row[1]
+        }));
+
+        res.json(alunosHorasTotais);
+    } catch (error) {
+        console.error('Erro ao obter dados:', error);
+        res.status(500).send('Erro ao obter dados');
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+});
+
+app.get('/getHorasUltimaSemana', async (req, res) => {
+    let connection;
+    try {
+        connection = await oracledb.getConnection(dbConfig);
+
+        const result = await connection.execute(
+            `SELECT aluno.nome, 
+                    SUM(ROUND((CAST(f.saida AS DATE) - CAST(f.entrada AS DATE)) * 24, 2)) AS horas
+             FROM aluno
+             JOIN frequencia f ON aluno.cpf = f.cpf_aluno
+             WHERE f.entrada >= SYSDATE - INTERVAL '7' DAY
+             GROUP BY aluno.nome
+             ORDER BY aluno.nome`
+        );
+
+        const alunosHorasUltimaSemana = result.rows.map(row => ({
+            nome: row[0],
+            horas: row[1]
+        }));
+
+        res.json(alunosHorasUltimaSemana);
+    } catch (error) {
+        console.error('Erro ao obter dados:', error);
+        res.status(500).send('Erro ao obter dados');
+    } finally {
+        if (connection) {
+            await connection.close();
+        }
+    }
+});

@@ -12,14 +12,14 @@
             <h1><a href="index.html">Academia</a></h1>
         </div>
         <div class="container" id="container">
-            <h2>Área do Aluno</h2>
-            <div class="buttons">
-                <!-- Botão para acessar o Terminal de Entrada e Saída -->
-                <button onclick="window.location.href='terminal.html'">Terminal de Entrada e Saída</button>
-                
-                <!-- Botão para gerar Relatório -->
-                <button onclick="window.location.href='relatorio.html'">Gerar Relatório</button>
+            <h1>Relatórios de Treinamento</h1>
+    
+            <div>
+                <button onclick="mostrarHorasTotais()">Total de horas de treinamento</button>
+                <button onclick="mostrarHorasUltimaSemana()">Total de horas na última semana</button>
             </div>
+        
+            <div id="tabela"></div>
         </div>
         <hr>
     </main> 
@@ -27,4 +27,5 @@
         <p><a href="login.html">Link</a> para o login</p>
     </footer>
 </body>
+<script src = relatorio.js></script>
 </html>

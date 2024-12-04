@@ -12,7 +12,7 @@ document.getElementById('form').addEventListener('submit', async (event) => {
     event.preventDefault();
     clearMessage(); // Limpa a mensagem anterior
 
-    const aluno = {
+    const alunos = {
         cpf: document.getElementById('cpf').value.replace(/\D/g, ''), 
         nome: document.getElementById('name').value,
         email: document.getElementById('email').value,
@@ -27,7 +27,7 @@ document.getElementById('form').addEventListener('submit', async (event) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(aluno)
+            body: JSON.stringify(alunos)
         });
         
         const result = await response.json();
