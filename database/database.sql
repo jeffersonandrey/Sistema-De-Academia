@@ -29,80 +29,19 @@ CREATE TABLE administradores (
     senha VARCHAR2(100)
 );
 
-INSERT INTO frequencia (
-    CPF_aluno, 
-    data_entrada,
-    hora_entrada, 
-    hora_saida
-) 
-VALUES (
-    '23951425814',
-    TO_DATE('2024-12-04', 'YYYY-MM-DD'),
-    TO_TIMESTAMP('2024-12-04 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), 
-    TO_TIMESTAMP('2024-12-04 10:00:00', 'YYYY-MM-DD HH24:MI:SS')
-);
-
-INSERT INTO frequencia (CPF_aluno, data_entrada, hora_entrada, hora_saida)
-VALUES (
-    '23951425814',
-    TO_DATE('19-11-2024', 'DD-MM-YYYY'),
-    TO_TIMESTAMP('19-11-2024 07:45:00', 'DD-MM-YYYY HH24:MI:SS'),
-    TO_TIMESTAMP('19-11-2024 18:15:00', 'DD-MM-YYYY HH24:MI:SS')
-);
-
-SELECT
-            a.nome AS nome_aluno,
-            COUNT(f.ID_frequencia) AS quantidade_visitas,
-            SUM(
-              CASE
-                  WHEN f.hora_saida IS NOT NULL AND f.hora_entrada IS NOT NULL THEN
-                      EXTRACT(HOUR FROM (f.hora_saida - f.hora_entrada)) 
-                      + EXTRACT(MINUTE FROM (f.hora_saida - f.hora_entrada)) / 60
-                  ELSE
-                      0
-              END
-            ) AS tempo_total
-        FROM
-            frequencia f
-        JOIN
-            alunos a ON TRIM(f.CPF_aluno) = TRIM(a.cpf)
-        WHERE
-            TRIM(f.CPF_aluno) = :cpfAluno  
-            AND f.data_entrada >= TO_TIMESTAMP(:startDate, 'YYYY-MM-DD HH24:MI:SS')
-            AND f.data_entrada < TO_TIMESTAMP(:endDate, 'YYYY-MM-DD HH24:MI:SS')
-        GROUP BY
-            a.nome;
-
-SELECT *
-FROM alunos
-WHERE TRIM(cpf) = :cpfAluno;
-
-
-SELECT cpf, nome FROM alunos;
-
-
-DROP TABLE aluno;
+DROP TABLE alunos;
 DROP TABLE frequencia;
 DROP TABLE administradores;
 DROP TABLE relatorio;
 
-SELECT * 
-FROM frequencia 
-WHERE CPF_aluno = '23951425814' 
-AND data_entrada >= TO_TIMESTAMP('2023-12-31 00:00:00', 'YYYY-MM-DD HH24:MI:SS')
-AND data_entrada <= TO_TIMESTAMP('2023-12-31 23:59:59', 'YYYY-MM-DD HH24:MI:SS');
-
-DESC frequencia;
-
-
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
 VALUES 
-('11223344556', 'Carlos Souza', 'carlos@exemplo.com', 'senha789', '11973284567', 'Mensal');
+('23951425814', 'Matias Amma', 'matiasamma@gmail.com', '$2b$10$5spzF2Ofx8Yy5Bemktm9Q.oNHXkACjG77yBvuQMqcuZXVlQDCXtce9', '19981713212', 'Mensal');
 
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
 VALUES
 
-('23604569893', TO_TIMESTAMP('2024-12-04 01:30:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-04 09:30:00', 'YYYY-MM-DD HH24:MI:SS'));
+('23951425814', TO_TIMESTAMP('2024-12-04 01:30:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-04 09:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO administradores (nome, email, senha)
 VALUES
