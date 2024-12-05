@@ -91,6 +91,9 @@ function exibirTabela(data) {
         return;
     }
 
+    // Ordena os dados em ordem decrescente de horas
+    data.sort((a, b) => b.horas - a.horas);
+
     let tabelaHTML = `
         <table>
             <thead>
@@ -115,6 +118,7 @@ function exibirTabela(data) {
     tabelaContainer.innerHTML = tabelaHTML;
 }
 
+
 function exibirTabelaSemanal(data) {
     const tabelaContainer = document.getElementById('table');
     tabelaContainer.innerHTML = '';
@@ -123,6 +127,9 @@ function exibirTabelaSemanal(data) {
         tabelaContainer.innerHTML = '<p>Sem dados para exibir.</p>';
         return;
     }
+
+    // Ordena os dados em ordem decrescente de horas
+    data.sort((a, b) => b.horas - a.horas);
 
     let tabelaHTML = `
         <table>
@@ -147,6 +154,7 @@ function exibirTabelaSemanal(data) {
     tabelaHTML += '</tbody></table>';
     tabelaContainer.innerHTML = tabelaHTML;
 }
+
 
 function exibirTabelaClass(data) {
     const tabelaContainer = document.getElementById('table');
