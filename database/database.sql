@@ -1,8 +1,5 @@
 CONNECT SYSTEM/123123@localhost:1521/XEPDB1
 
-ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD HH24:MI:SS';
-
-
 CREATE TABLE aluno (
     cpf VARCHAR2(11) PRIMARY KEY,     
     nome VARCHAR2(100) NOT NULL,     
@@ -29,14 +26,14 @@ CREATE TABLE administradores (
     senha VARCHAR2(100)
 );
 
-DROP TABLE alunos;
+DROP TABLE aluno;
 DROP TABLE frequencia;
 DROP TABLE administradores;
 DROP TABLE relatorio;
 
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
 VALUES 
-('23951425814', 'Matias Amma', 'matiasamma@gmail.com', '$2b$10$5spzF2Ofx8Yy5Bemktm9Q.oNHXkACjG77yBvuQMqcuZXVlQDCXtce9', '19981713212', 'Mensal');
+('23951425814', 'Matias Amma', 'matiasamma@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '19981713212', 'Mensal');
 
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
 VALUES
@@ -45,22 +42,22 @@ VALUES
 
 INSERT INTO administradores (nome, email, senha)
 VALUES
-('Admin', 'admin@gmail.com', '$2b$10$5spzF2Ofx8Yy5Bemktm9Q.oNHXkACjG77yBvuQMqcuZXVlQDCXtce');
+('Admin', 'admin@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC');
 -- Inserindo Alunos
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
-VALUES ('12345678901', 'João Silva', 'joao@gmail.com', '$2b$10$senhaSegura1', '11999999991', 'Mensal');
+VALUES ('12345678901', 'João Silva', 'joao@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '11999999991', 'Mensal');
 
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
-VALUES ('98765432109', 'Maria Oliveira', 'maria@gmail.com', '$2b$10$senhaSegura2', '11999999992', 'Semestral');
+VALUES ('98765432109', 'Maria Oliveira', 'maria@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '11999999992', 'Semestral');
 
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
-VALUES ('15975345685', 'Carlos Pereira', 'carlos@gmail.com', '$2b$10$senhaSegura3', '11999999993', 'Mensal');
+VALUES ('15975345685', 'Carlos Pereira', 'carlos@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '11999999993', 'Mensal');
 
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
-VALUES ('75395125874', 'Ana Costa', 'ana@gmail.com', '$2b$10$senhaSegura4', '11999999994', 'Anual');
+VALUES ('75395125874', 'Ana Costa', 'ana@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '11999999994', 'Anual');
 
 INSERT INTO aluno (cpf, nome, email, senha, telefone, plano)
-VALUES ('45678912310', 'Paulo Souza', 'paulo@gmail.com', '$2b$10$senhaSegura5', '11999999995', 'Semestral');
+VALUES ('45678912310', 'Paulo Souza', 'paulo@gmail.com', '$2b$10$Edm5OGxYjo2Xiwn8MDMBe.bmtTj2uEXSYBuxE8fT6V3zZVHFK8UIC', '11999999995', 'Semestral');
 -- João silva iniciante --
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
 VALUES ('12345678901', TO_TIMESTAMP('2024-12-01 08:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-01 10:00:00', 'YYYY-MM-DD HH24:MI:SS'));
@@ -77,14 +74,14 @@ VALUES ('98765432109', TO_TIMESTAMP('2024-12-03 10:00:00', 'YYYY-MM-DD HH24:MI:S
 
 -- Carlos Pereira (Avançado - De 11 a 20 horas semanais)
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
-VALUES ('15975345685', TO_TIMESTAMP('2024-12-01 07:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-01 14:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+VALUES ('15975345685', TO_TIMESTAMP('2024-11-15 07:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-11-15 14:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
 VALUES ('15975345685', TO_TIMESTAMP('2024-12-03 08:30:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-03 15:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 -- Ana Costa (Extremamente Avançado - Acima de 20 horas semanais)
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
-VALUES ('75395125874', TO_TIMESTAMP('2024-12-01 06:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-01 18:00:00', 'YYYY-MM-DD HH24:MI:SS'));
+VALUES ('75395125874', TO_TIMESTAMP('2024-11-11 06:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-11-11 18:00:00', 'YYYY-MM-DD HH24:MI:SS'));
 
 INSERT INTO frequencia (cpf_aluno, entrada, saida)
 VALUES ('75395125874', TO_TIMESTAMP('2024-12-02 07:00:00', 'YYYY-MM-DD HH24:MI:SS'), TO_TIMESTAMP('2024-12-02 19:00:00', 'YYYY-MM-DD HH24:MI:SS'));
