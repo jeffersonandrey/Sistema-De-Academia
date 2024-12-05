@@ -54,7 +54,7 @@ document.getElementById('deleteAll').addEventListener('click', async () => {
         alert('Erro ao deletar todos os alunos.');
     }
 });
-
+//Função chamada no botão para mostrar horas totais
 function mostrarHorasTotais() {
     fetch('/getHorasTotais')  
         .then(response => response.json())
@@ -63,7 +63,7 @@ function mostrarHorasTotais() {
         })
         .catch(error => console.error('Erro:', error));
 }
-
+//Função chamada no botão para mostrar horas da ultima semana
 function mostrarHorasUltimaSemana() {
     fetch('/getHorasUltimaSemana')  
         .then(response => response.json())
@@ -72,7 +72,7 @@ function mostrarHorasUltimaSemana() {
         })
         .catch(error => console.error('Erro:', error));
 }
-
+//Função chamada no botão para mostrar o relatorio dos alunos na ultima semana
 function relatorioClassificacao() {
     fetch('/getHorasUltimaSemana')  
         .then(response => response.json())
@@ -81,7 +81,7 @@ function relatorioClassificacao() {
         })
         .catch(error => console.error('Erro:', error));
 }
-
+//Função para criar a tabela de horas totais
 function exibirTabela(data) {
     const tabelaContainer = document.getElementById('table');
     tabelaContainer.innerHTML = '';
@@ -118,7 +118,7 @@ function exibirTabela(data) {
     tabelaContainer.innerHTML = tabelaHTML;
 }
 
-
+//Função que cria a tabela semanal
 function exibirTabelaSemanal(data) {
     const tabelaContainer = document.getElementById('table');
     tabelaContainer.innerHTML = '';
@@ -155,7 +155,7 @@ function exibirTabelaSemanal(data) {
     tabelaContainer.innerHTML = tabelaHTML;
 }
 
-
+//função que cria a tabela de classificação
 function exibirTabelaClass(data) {
     const tabelaContainer = document.getElementById('table');
     tabelaContainer.innerHTML = '';
@@ -164,7 +164,7 @@ function exibirTabelaClass(data) {
         tabelaContainer.innerHTML = '<p>Sem dados para exibir.</p>';
         return;
     }
-
+    // ordena o dado em ordem decrescente de horas
     data.sort((a, b) => b.horas - a.horas);
 
     let tabelaHTML = `
