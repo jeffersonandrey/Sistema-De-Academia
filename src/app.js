@@ -555,21 +555,37 @@ app.get('/getHorasUltimaSemanaAluno', async (req, res) => {
 
         connection = await oracledb.getConnection(dbConfig);
 
+        // Primeiro, verificar se o aluno existe
+        const alunoCheck = await connection.execute(
+            `SELECT nome FROM aluno WHERE cpf = :cpf`,
+            { cpf }
+        );
+
+        if (alunoCheck.rows.length === 0) {
+            return res.status(404).json({ mensagem: 'CPF não encontrado na tabela aluno' });
+        }
+
+        // Buscar registros de frequência para o aluno existente
         const result = await connection.execute(
             `SELECT aluno.nome, 
                     SUM(ROUND((CAST(f.saida AS DATE) - CAST(f.entrada AS DATE)) * 24, 2)) AS horas
              FROM aluno
-             JOIN frequencia f ON aluno.cpf = f.cpf_aluno
+             LEFT JOIN frequencia f ON aluno.cpf = f.cpf_aluno
              WHERE aluno.cpf = :cpf
                AND f.entrada >= SYSDATE - INTERVAL '7' DAY
              GROUP BY aluno.nome`,
-            { cpf } // Parâmetro para o CPF
+            { cpf }
         );
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({ mensagem: 'Nenhum registro encontrado para este CPF' });
+        if (result.rows.length === 0 || result.rows[0][1] === null) {
+            // Aluno existe, mas não possui registros de frequência
+            return res.status(200).json({
+                mensagem: 'Aluno encontrado, mas sem registros de frequência na última semana',
+                nome: alunoCheck.rows[0][0]
+            });
         }
 
+        // Retornar os dados do aluno com horas registradas
         const alunoHorasUltimaSemana = {
             nome: result.rows[0][0],
             horas: result.rows[0][1]

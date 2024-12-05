@@ -15,20 +15,35 @@ function mostrarHorasUltimaSemanaAluno() {
 
     // Faz a requisição ao backend
     fetch(`/getHorasUltimaSemanaAluno?cpf=${cpfAluno}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao buscar dados: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log('Dados recebidos:', data);
+    .then(response => {
+        if (!response.ok) {
+            // Em caso de erro de rede ou status HTTP não esperado
+            throw new Error('Erro ao buscar dados: ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Dados recebidos:', data);
+
+        // Verificação para CPF não encontrado (ajustar a chave conforme necessário)
+        if (data && data.erro === 'Not Found') {
+            tabelaContainer.innerHTML = '<p>CPF não encontrado no sistema de alunos.</p>';
+        } else if (data && (data.horas === 0 || !data.horas)) {
+            // Verifica se há horas registradas para o CPF
+            tabelaContainer.innerHTML = '<p>Não há dados de horas para o CPF informado.</p>';
+        } else if (data && data.nome && data.horas) {
+            // Caso contrário, exibe a tabela com os dados
             exibirTabela(data);
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            tabelaContainer.innerHTML = '<p>Erro ao buscar dados. Confira o CPF e tente novamente.</p>';
-        });
+        } else {
+            // Caso os dados estejam malformados ou incompletos
+            tabelaContainer.innerHTML = '<p>Erro inesperado ao processar os dados. Tente novamente.</p>';
+        }
+    })
+    .catch(error => {
+        // Esse erro será disparado apenas para erros reais de rede ou problemas inesperados
+        console.error('Erro:', error);
+        tabelaContainer.innerHTML = '<p>Erro ao buscar dados. Confira o CPF e tente novamente.</p>';
+    });
 }
 
 function obterClassificacao(horas) {
@@ -76,7 +91,6 @@ function exibirTabela(data) {
 
     tabelaContainer.innerHTML = tabelaHTML;
 }
-
 
 function formatarCPF(cpf) {
     cpf = cpf.replace(/\D/g, '');
